@@ -3,12 +3,15 @@ using System.Collections;
 
 public class OverlayBehavior : MonoBehaviour
 {
-    public Sprite five, four, three, two, one, go, time, ready;
+    public Sprite Five, Four, Three, Two, One, Go, Time, Ready;
+    public AudioClip FiveAudio, FourAudio, ThreeAudio, TwoAudio, OneAudio, GoAudio, TimeAudio, ReadyAudio;
 
-    public SpriteRenderer sr;
+    public SpriteRenderer Renderer;
+    public AudioSource Audio;
+
     private Vector3 fullSize = new Vector3(50, 50, 1);
-    private Color transparent = new Color(1f, 1f, 1f, 0f);
-    private bool lerping = false, fading = false;
+    private Color _transparent = new Color(1f, 1f, 1f, 0f);
+    private bool _lerping, _fading;
 
 	IEnumerator Count()
     {
@@ -18,72 +21,82 @@ public class OverlayBehavior : MonoBehaviour
         {
             ChangeSprite(i);
             yield return new WaitForSeconds(0.75f);
-            fading = true;
+            _fading = true;
             yield return new WaitForSeconds(0.25f);
         }
     }
 
     void ChangeSprite(int num)
     {
-        fading = false;
+        Audio.Stop();
+        _fading = false;
         switch (num)
         {
             case 6:
-                sr.sprite = ready;
+                Renderer.sprite = Ready;
+                Audio.clip = ReadyAudio;
                 break;
             case 5:
-                sr.sprite = five;
+                Renderer.sprite = Five;
+                Audio.clip = FiveAudio;
                 break;
             case 4:
-                sr.sprite = four;
+                Renderer.sprite = Four;
+                Audio.clip = FourAudio;
                 break;
             case 3:
-                sr.sprite = three;
+                Renderer.sprite = Three;
+                Audio.clip = ThreeAudio;
                 break;
             case 2:
-                sr.sprite = two;
+                Renderer.sprite = Two;
+                Audio.clip = TwoAudio;
                 break;
             case 1:
-                sr.sprite = one;
+                Renderer.sprite = One;
+                Audio.clip = OneAudio;
                 break;
             case 0:
-                sr.sprite = go;
+                Renderer.sprite = Go;
+                Audio.clip = GoAudio;
                 break;
             default:
-                sr.sprite = null;
+                Renderer.sprite = null;
+                Audio.clip = null;
                 break;
         }
         transform.localScale = new Vector3(100, 100, 1);
-        sr.color = Color.white;
-        lerping = true;
+        Renderer.color = Color.white;
+        Audio.Play();
+        _lerping = true;
     }
 
     void Start()
     {
-        StartCoroutine("Count");
+        //StartCoroutine("Count");
     }
 
     void FixedUpdate()
     {
-        if (lerping)
+        if (_lerping)
         {
             transform.localScale = Vector3.Lerp(transform.localScale, fullSize, 0.10f);
             Vector3 delta = transform.localScale - fullSize;
             if (delta.x < 0.01 && delta.y < 0.01)
             {
                 transform.localScale = fullSize;
-                lerping = false;
+                _lerping = false;
             }
         }
 
-        if(fading)
+        if(_fading)
         {
-            sr.color = Color.Lerp(sr.color, transparent, 0.25f);
-            float alpha = sr.color.a - transparent.a;
+            Renderer.color = Color.Lerp(Renderer.color, _transparent, 0.25f);
+            float alpha = Renderer.color.a - _transparent.a;
             if (alpha >= 0.99f)
             {
-                sr.color = transparent;
-                fading = false;
+                Renderer.color = _transparent;
+                _fading = false;
             }
         }
     }

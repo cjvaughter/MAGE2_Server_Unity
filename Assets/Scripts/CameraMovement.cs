@@ -1,34 +1,45 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class CameraMovement : MonoBehaviour
 {
-    public float scrollSpeed = 8;
-    public float panSpeed = 2;
-    private Vector3 mouseOrigin;	// Position of cursor when mouse dragging starts
-    private bool isPanning;		// Is the camera being panned?
+    public float ScrollSpeed = 8;
+    public float PanSpeed = 2;
+    private Vector3 _mouseOrigin = new Vector3(0,0,0);	// Position of cursor when mouse dragging starts
+    private Vector3 _pos = new Vector3(0, 0, 0);
+    private Vector3 _startPos;
+    private bool _panning;		// Is the camera being panned?
+    private float _zoom;
+
+
+    void Start()
+    {
+        _startPos = transform.position;
+        _zoom = 0;
+    }
 
     void LateUpdate()
     {
         //Scroll
-        Camera.main.orthographicSize = Mathf.Clamp(Camera.main.orthographicSize - Input.GetAxis("Mouse ScrollWheel") * scrollSpeed, 4, 30);
+        _zoom += Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed;
+        _zoom = Mathf.Clamp(_zoom, 4, 30);
 
+        Camera.main.orthographicSize = Mathf.Lerp(Camera.main.orthographicSize, _zoom, 0.10f);
 
         //Pan
         if (Input.GetMouseButtonDown(0))
         {
-            // Get mouse origin
-            mouseOrigin = Input.mousePosition;
-            isPanning = true;
+            _mouseOrigin = Camera.main.ScreenToViewportPoint(Input.mousePosition);
+            _startPos = transform.position;
+            _panning = true;
         }
-
-        if (!Input.GetMouseButton(0)) isPanning = false;
-
-        if (isPanning)
+        if (!Input.GetMouseButton(0))
         {
-            Vector3 pos = Camera.main.ScreenToViewportPoint(Input.mousePosition - mouseOrigin);
-            pos.z = 0;
-            transform.Translate(pos, Space.Self);
+            _panning = false;
         }
+        if (_panning)
+        {
+            _pos = (_mouseOrigin - Camera.main.ScreenToViewportPoint(Input.mousePosition)) * PanSpeed * Camera.main.orthographicSize;
+        }
+        transform.position = Vector3.Lerp(transform.position, _startPos + _pos, 0.15f);
     }
 }
