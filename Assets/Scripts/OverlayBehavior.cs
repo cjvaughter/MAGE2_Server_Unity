@@ -73,7 +73,7 @@ public class OverlayBehavior : MonoBehaviour
 
     void Start()
     {
-        //StartCoroutine("Count");
+        StartCoroutine("Count");
     }
 
     void FixedUpdate()
