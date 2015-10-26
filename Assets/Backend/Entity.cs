@@ -1,4 +1,5 @@
-﻿//using System.Drawing;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
 public enum TeamColor : byte
 {
@@ -28,11 +29,12 @@ public class Player : Entity
 {
     int _health;
     public Player() { }
-    public Player(string name, ushort id, /*Image picture,*/ TeamColor team, int level, int xp, int strength, int defense, int luck, int maxhealth, int levelspending)
+    public Player(string name, ushort id, byte[] picture, TeamColor team, int level, int xp, int strength, int defense, int luck, int maxhealth, int levelspending)
     {
         Name = name;
         ID = id;
-        //Picture = picture;
+        Picture = new Texture2D(1, 1);
+        Picture.LoadImage(picture);
         Team = team;
         Level = level;
         XP = xp;
@@ -42,10 +44,29 @@ public class Player : Entity
         Health = MaxHealth = maxhealth;
         LevelsPending = levelspending;
         State = EntityState.Alive;
+
+        Panel = GameObject.Instantiate(Resources.Load("PlayerPanel")) as GameObject;
+        Panel.transform.Find("Name").GetComponent<TextMesh>().text = Name;
+        Panel.transform.Find("Player").GetComponent<MeshRenderer>().material.mainTexture = Picture;
+        //Panel.transform.Find("Device").GetComponent<MeshRenderer>().material.mainTexture = Device.Picture;
+        if(Game.Type == GameType.TeamBattle)
+            switch(team)
+            {
+                case TeamColor.Blue:
+                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material.color = new Color(0, 0, 0.5f);
+                    break;
+            }
+    }
+
+    public void UpdatePanel()
+    {
+        
     }
 
     public ushort ID { get; private set; }
-    //public Image Picture { get; private set; }
+    public Texture2D Picture { get; private set; }
+
+    private GameObject Panel;
 
     public int Level { get; set; }
     public int LevelsPending { get; set; }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-//using MAGE2_Server.Properties;
 
 public enum LogEvents : byte
 {
@@ -36,7 +35,7 @@ public static class Logger
     private static string _log = "";
     private static Queue<string> _logData = new Queue<string>();
 
-    public static void Initialize(/*GameType*/string type, int players, int rounds, int milliseconds)
+    public static void Initialize(GameType type, int players, int rounds, int milliseconds)
     {
         int seconds = milliseconds / 1000;
         _log = "";
@@ -116,7 +115,7 @@ public static class Logger
     }
 
     //PvP events
-    public static void Log(LogEvents e, Entity attacker, Entity defender, /*SpellType*/string spell)
+    public static void Log(LogEvents e, Entity attacker, Entity defender, SpellType spell)
     {
         switch (e)
         {
@@ -131,7 +130,7 @@ public static class Logger
 
     public static void Log(string data)
     {
-        DateTime now = new DateTime(/*Game.CurrentTime*/);
+        DateTime now = new DateTime(Game.CurrentTime);
         string log = now.ToString("[HH:mm:ss.fff] ") + data + "\r\n";
         _log += log;
         _logData.Enqueue(log);

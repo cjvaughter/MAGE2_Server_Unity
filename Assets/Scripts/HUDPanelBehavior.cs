@@ -6,13 +6,13 @@ public class HUDPanelBehavior : MonoBehaviour
 {
     public Text GameType, Time, Round;
 
-    private static DateTime _time;
-    private static int _round, _rounds;
-    private static string _gametype;
+    private static DateTime _time = new DateTime();
+    private static int _round = 0, _rounds = 0;
+    private static string _gametype = "";
 
     public static void Initialize(string type, int rounds)
     {
-        _gametype = type;
+        _gametype = type.ToUpper();
         _round = 0;
         _rounds = rounds;  
     }

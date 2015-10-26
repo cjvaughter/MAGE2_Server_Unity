@@ -1,4 +1,4 @@
-﻿//using System.Drawing;
+﻿using UnityEngine;
 
 public enum DeviceType : byte
 {
@@ -20,11 +20,12 @@ public enum DeviceType : byte
 public class Device
 {
     public Device() { }
-    public Device(string name, ushort id, /*Image picture,*/ DeviceType type, string description, bool destructible)
+    public Device(string name, ushort id, byte[] picture, DeviceType type, string description, bool destructible)
     {
         Name = name;
         ID = id;
-        //Picture = picture;
+        Picture = new Texture2D(1, 1);
+        Picture.LoadImage(picture);
         Type = type;
         Description = description;
         Destructible = destructible;
@@ -32,7 +33,7 @@ public class Device
 
     public string Name { get; set; }
     public ushort ID { get; set; }
-    //public Image Picture { get; set; }
+    public Texture2D Picture { get; set; }
     public DeviceType Type { get; set; }
     public string Description { get; set; }
     public bool Destructible { get; set; }
