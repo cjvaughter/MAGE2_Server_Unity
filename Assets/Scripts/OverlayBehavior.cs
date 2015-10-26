@@ -1,40 +1,38 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class OverlayBehavior : MonoBehaviour
 {
-    public Sprite Five, Four, Three, Two, One, Go, Time, Ready;
-    public AudioClip FiveAudio, FourAudio, ThreeAudio, TwoAudio, OneAudio, GoAudio, TimeAudio, ReadyAudio;
+    public Sprite Five, Four, Three, Two, One, Go, Time, Ready, Game;
+    public AudioClip FiveAudio, FourAudio, ThreeAudio, TwoAudio, OneAudio, GoAudio, TimeAudio, ReadyAudio, GameAudio;
 
     public SpriteRenderer Renderer;
     public AudioSource Audio;
 
     private Vector3 fullSize = new Vector3(50, 50, 1);
     private Color _transparent = new Color(1f, 1f, 1f, 0f);
-    private bool _lerping, _fading;
+    private bool _lerping, _fading, _longFade;
 
-	IEnumerator Count()
-    {
-        yield return new WaitForSeconds(1.0f);
-
-        for (int i = 5; i >= 0; i--)
-        {
-            ChangeSprite(i);
-            yield return new WaitForSeconds(0.75f);
-            _fading = true;
-            yield return new WaitForSeconds(0.25f);
-        }
-    }
-
-    void ChangeSprite(int num)
+    public void ChangeSprite(int num)
     {
         Audio.Stop();
         _fading = false;
+        _longFade = false;
         switch (num)
         {
+            case 8:
+                Renderer.sprite = Game;
+                Audio.clip = GameAudio;
+                _longFade = true;
+                break;
+            case 7:
+                Renderer.sprite = Time;
+                Audio.clip = TimeAudio;
+                _longFade = true;
+                break;
             case 6:
                 Renderer.sprite = Ready;
                 Audio.clip = ReadyAudio;
+                _longFade = true;
                 break;
             case 5:
                 Renderer.sprite = Five;
@@ -59,6 +57,7 @@ public class OverlayBehavior : MonoBehaviour
             case 0:
                 Renderer.sprite = Go;
                 Audio.clip = GoAudio;
+                _longFade = true;
                 break;
             default:
                 Renderer.sprite = null;
@@ -69,19 +68,16 @@ public class OverlayBehavior : MonoBehaviour
         Renderer.color = Color.white;
         Audio.Play();
         _lerping = true;
-    }
-
-    void Start()
-    {
-        StartCoroutine("Count");
+        _fading = true;
     }
 
     void FixedUpdate()
     {
+        Vector3 delta = new Vector3();
         if (_lerping)
         {
             transform.localScale = Vector3.Lerp(transform.localScale, fullSize, 0.10f);
-            Vector3 delta = transform.localScale - fullSize;
+            delta = transform.localScale - fullSize;
             if (delta.x < 0.01 && delta.y < 0.01)
             {
                 transform.localScale = fullSize;
@@ -91,12 +87,15 @@ public class OverlayBehavior : MonoBehaviour
 
         if(_fading)
         {
-            Renderer.color = Color.Lerp(Renderer.color, _transparent, 0.25f);
-            float alpha = Renderer.color.a - _transparent.a;
-            if (alpha >= 0.99f)
+            if ((!_longFade && delta.x < 1 && delta.y < 1) || (_longFade && delta.x < 0.1 && delta.y < 0.1))
             {
-                Renderer.color = _transparent;
-                _fading = false;
+                Renderer.color = Color.Lerp(Renderer.color, _transparent, 0.25f);
+                float alpha = Renderer.color.a - _transparent.a;
+                if (alpha >= 0.99f)
+                {
+                    Renderer.color = _transparent;
+                    _fading = false;
+                }
             }
         }
     }
