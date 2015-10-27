@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class CameraMovement : MonoBehaviour
 {
@@ -17,15 +18,18 @@ public class CameraMovement : MonoBehaviour
     void LateUpdate()
     {
         //Scroll
-        _zoom -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed;
+        if (!EventSystem.current.IsPointerOverGameObject())
+        {
+            _zoom -= Input.GetAxis("Mouse ScrollWheel") * ScrollSpeed;
+        }
         _zoom = Mathf.Clamp(_zoom, 4, 30);
-
         mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, _zoom, 0.10f);
         if(Mathf.Abs(mainCamera.orthographicSize - _zoom) < 0.05f)
         {
             mainCamera.orthographicSize = _zoom;
         }
 
+        //Pan
         transform.position = Vector3.Lerp(transform.position, _pos, 0.15f);
     }
 

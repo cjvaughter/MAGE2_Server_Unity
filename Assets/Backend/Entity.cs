@@ -4,11 +4,9 @@ using UnityEngine.UI;
 public enum TeamColor : byte
 {
     Red,
-    Orange,
     Yellow,
     Green,
     Blue,
-    Purple,
 }
 
 public enum EntityState : byte
@@ -44,23 +42,32 @@ public class Player : Entity
         Health = MaxHealth = maxhealth;
         LevelsPending = levelspending;
         State = EntityState.Alive;
-
-        Panel = GameObject.Instantiate(Resources.Load("PlayerPanel")) as GameObject;
-        Panel.transform.Find("Name").GetComponent<TextMesh>().text = Name;
-        Panel.transform.Find("Player").GetComponent<MeshRenderer>().material.mainTexture = Picture;
-        //Panel.transform.Find("Device").GetComponent<MeshRenderer>().material.mainTexture = Device.Picture;
-        if(Game.Type == GameType.TeamBattle)
-            switch(team)
-            {
-                case TeamColor.Blue:
-                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material.color = new Color(0, 0, 0.5f);
-                    break;
-            }
     }
 
-    public void UpdatePanel()
+    public void CreatePanel()
     {
-        
+        Panel = GameObject.Instantiate(Resources.Load("Prefabs/PlayerPanel")) as GameObject;
+        Panel.transform.Find("Name").GetComponent<TextMesh>().text = Name;
+        Panel.transform.Find("Player").GetComponent<MeshRenderer>().material.mainTexture = Picture;
+        Panel.transform.Find("Device").GetComponent<MeshRenderer>().material.mainTexture = Device.Picture;
+        if (Game.Type == GameType.TeamBattle)
+            switch (Team)
+            {
+                case TeamColor.Red:
+                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Red") as Material;
+                    break;
+                case TeamColor.Yellow:
+                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Yellow") as Material;
+                    Panel.transform.Find("Name").GetComponent<TextMesh>().color = Color.black;
+                    Panel.transform.Find("Status").GetComponent<TextMesh>().color = Color.black;
+                    break;
+                case TeamColor.Green:
+                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Green") as Material;
+                    break;
+                case TeamColor.Blue:
+                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Blue") as Material;
+                    break;
+            }
     }
 
     public ushort ID { get; private set; }

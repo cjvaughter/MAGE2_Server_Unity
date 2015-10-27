@@ -2,8 +2,6 @@
 
 public class PanelBehavior : MonoBehaviour
 {
-    public Camera mainCamera;
-
     void OnMouseUpAsButton()
     {
         Select();
@@ -11,7 +9,7 @@ public class PanelBehavior : MonoBehaviour
 
     void Select()
     {
-        mainCamera.GetComponent<CameraMovement>().SetPosition(transform.position);
-        mainCamera.GetComponent<CameraMovement>().SetZoom(100);
+        Camera.main.GetComponent<CameraMovement>().SetPosition(transform.position);
+        Camera.main.GetComponent<CameraMovement>().SetZoom(100);
     }
 }

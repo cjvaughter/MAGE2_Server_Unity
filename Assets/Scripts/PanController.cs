@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using System.Collections;
 
 public class PanController : MonoBehaviour
 {
     public float PanSpeed;
     public Camera mainCamera;
+    
 
     private Vector3 _startPos;
     private Vector3 _mouseOrigin;
@@ -12,7 +14,8 @@ public class PanController : MonoBehaviour
 
     void OnMouseDown()
     {
-        if(!_panning)
+        if (EventSystem.current.IsPointerOverGameObject()) return;
+        if (!_panning)
         {
             _startPos = mainCamera.transform.position;
             _mouseOrigin = mainCamera.ScreenToViewportPoint(Input.mousePosition);

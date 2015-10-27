@@ -17,6 +17,7 @@ public static class Players
             p.Device = d;
             p.Address = msg.Address;
             p.Connected = true;
+            p.CreatePanel();
             PlayerList.Add(p);
             Logger.Log(LogEvents.Connected, p);
             return true;
