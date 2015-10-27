@@ -11,6 +11,7 @@ public static class Coordinator
     static Thread _rx, _tx;
     static bool _rxRunning;
     static bool _txRunning;
+    static bool _paused;
 
     public static void Start()
     {
@@ -27,20 +28,45 @@ public static class Coordinator
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
         Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0xCC, 0xCC, 0xEE, 0xEE }));
 
+        StartThreads();
+    }
+
+    private static void StartThreads()
+    {
         _rxRunning = true;
         _txRunning = true;
-        _rx = new Thread(RX) {IsBackground = true};
+        _rx = new Thread(RX) { IsBackground = true };
         _rx.Start();
-        _tx = new Thread(TX) {IsBackground = true};
+        _tx = new Thread(TX) { IsBackground = true };
         _tx.Start();
+        _paused = false;
     }
-    public static void Stop()
+
+    private static void StopThreads()
     {
         _txRunning = false;
         _tx.Join();
         _rxRunning = false;
         _rx.Join();
+    }
+
+    public static void Stop()
+    {
+        StopThreads();
         Serial.Close();
+    }
+
+    public static void Pause()
+    {
+        _paused = true;
+    }
+
+    public static void Unpause()
+    {
+        Serial.DiscardInBuffer();
+        Serial.DiscardOutBuffer();
+        MAGEMsg.Reset();
+        _paused = false;
     }
 
     public static void RX()
@@ -49,12 +75,17 @@ public static class Coordinator
         {
             try
             {
-                byte data = (byte) Serial.ReadByte();
-                MAGEMsg.Decode(data);
-                if (MAGEMsg.Ready)
+                if (!_paused)
                 {
-                    Inbox.Enqueue(MAGEMsg.CurrentMessage);
+                    byte data = (byte)Serial.ReadByte();
+                    MAGEMsg.Decode(data);
+                    if (MAGEMsg.Ready)
+                    {
+                        Inbox.Enqueue(MAGEMsg.CurrentMessage);
+                    }
                 }
+                else
+                    Thread.Sleep(1);
             }
             catch (Exception)
             {
@@ -66,7 +97,7 @@ public static class Coordinator
     {
         while (_txRunning)
         {
-            if(Outbox.Count > 0)
+            if (!_paused && Outbox.Count > 0)
             {
                 byte[] data = MAGEMsg.Encode(Outbox.Dequeue());
                 Serial.Write(data, 0, data.Length);

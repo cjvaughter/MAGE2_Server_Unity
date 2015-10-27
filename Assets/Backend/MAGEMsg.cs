@@ -57,6 +57,20 @@ public class MAGEMsg
     private static bool _escape;
     private static byte _sum;
     private static byte _index;
+
+    public static void Reset()
+    {
+        _step = 0;
+        _length = 0;
+        _api = 0;
+        _address = 0;
+        _data = null;
+        _checksum = 0;
+        _escape = false;
+        _sum = 0;
+        _index = 0;
+    }
+
     public static void Decode(byte data)
     {
         if (data == Escape)

@@ -38,12 +38,20 @@ public static class Players
     public static int Remaining { get { return PlayerList.Count(p => p.State == EntityState.Alive); } }
     public static Player Survivor { get { return Remaining == 1 ? PlayerList.FirstOrDefault(p => p.State == EntityState.Alive) : null; } }
 
-    public static void VerifyHeartbeats(long time)
+    public static void VerifyHeartbeats()
     {
-        foreach (Player p in PlayerList.Where(p => p.Connected && time - p.Heartbeat > HeartbeatTimeout))
+        foreach (Player p in PlayerList.Where(p => p.Connected && Game.CurrentTime - p.Heartbeat > HeartbeatTimeout))
         {
             p.Connected = false;
             Logger.Log(LogEvents.LostConnection, p);
+        }
+    }
+
+    public static void ResetHeartbeats()
+    {
+        foreach (Player p in PlayerList.Where(p => p.Connected))
+        {
+            p.Heartbeat = Game.CurrentTime;
         }
     }
 }

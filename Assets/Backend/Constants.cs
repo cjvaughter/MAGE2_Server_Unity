@@ -27,4 +27,10 @@ public static class Constants
     public const string SelectPlayers = Select + "Players" + Ascending;
     public const string UpdateDevice = Update + "Devices SET Name=@name, ID=@new_id, Picture=@picture, Type=@type, Description=@description, Destructible=@destructible WHERE ID=@ID";
     public const string UpdatePlayer = Update + "Players SET Name=@name, ID=@new_id, Picture=@picture, Team=@team WHERE ID=@ID";
+
+    public const float OffsetY = 0;
+    public const float RedX = -10.5f;
+    public const float YellowX = -3.5f;
+    public const float GreenX = 3.5f;
+    public const float BlueX = 10.5f;
 }

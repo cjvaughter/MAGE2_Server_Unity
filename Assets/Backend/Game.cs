@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum GameState : byte
 {
@@ -21,6 +22,7 @@ public static class Game
     static long _lastTime;
     static int _timeRemaining;
     static int _countdown;
+    static bool _running;
 
     public static long CurrentTime;
     public static GameState State { get; private set; }
@@ -66,26 +68,48 @@ public static class Game
         Coordinator.Start();
         Database.Connect();
         Logger.Log(LogEvents.ServerInitialized);
+        _running = true;
     }
 
     public static void Stop()
     {
-        if (State == GameState.Complete)
-            Wrapup();
-        else
-            Logger.Log(LogEvents.GameQuit);
+        if (_running)
+        {
+            if (State == GameState.Complete)
+                Wrapup();
+            else
+                Logger.Log(LogEvents.GameQuit);
 
-        Coordinator.Stop();
-        Logger.Save();
-        Players.Clear();
-        Database.Disconnect();
+            Coordinator.Stop();
+            Logger.Save();
+            Players.Clear();
+            Database.Disconnect();
+            _running = false;
+        }
+    }
+
+    public static void Pause()
+    {
+        Logger.Log(LogEvents.GamePaused);
+        Coordinator.Pause();
+    }
+
+    public static void Unpause()
+    {
+        CurrentTime = DateTime.Now.TimeOfDay.Ticks;
+        Logger.Log(LogEvents.GameUnpaused);
+        Players.ResetHeartbeats();
+        Coordinator.Unpause();
     }
 
     public static void Run()
     {
-        CurrentTime = DateTime.Now.TimeOfDay.Ticks;
-        ProcessMessages();
-        UpdateState();
+        if (_running)
+        {
+            CurrentTime = DateTime.Now.TimeOfDay.Ticks;
+            ProcessMessages();
+            UpdateState();
+        }
     }
 
     private static void ProcessMessages()
@@ -233,7 +257,7 @@ public static class Game
                 }
             }
 
-            //Players.VerifyHeartbeats(_currentTime);
+            //Players.VerifyHeartbeats();
             Spell.ClearExpired(CurrentTime);
 
             if (Rules.GameIsOver && State != GameState.Waiting) // Did somebody win?

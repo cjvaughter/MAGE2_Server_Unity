@@ -23,7 +23,7 @@ public class PanController : MonoBehaviour
         }
     }
 
-	void Update ()
+	void Update()
     {
         if (!Input.GetMouseButton(0) && _panning)
         {
@@ -32,7 +32,10 @@ public class PanController : MonoBehaviour
 
         if (_panning)
         {
-            Vector3 pos = ((_mouseOrigin - mainCamera.ScreenToViewportPoint(Input.mousePosition)) * PanSpeed * mainCamera.orthographicSize) + _startPos;
+            Vector3 movement = mainCamera.ScreenToViewportPoint(Input.mousePosition);
+            movement.x = _mouseOrigin.x;
+            Vector3 pos = ((_mouseOrigin - movement) * PanSpeed * mainCamera.orthographicSize) + _startPos;
+            pos.y = Mathf.Clamp(pos.y, -10, 0);
             mainCamera.GetComponent<CameraMovement>().SetPosition(pos);
         }
 	}

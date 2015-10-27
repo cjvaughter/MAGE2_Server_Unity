@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine.UI;
 
 public enum LogEvents : byte
 {
@@ -8,6 +9,8 @@ public enum LogEvents : byte
     ServerInitialized,
     GameBegan,
     GameEnded,
+    GamePaused,
+    GameUnpaused,
     RoundBegan,
     RoundEnded,
     InvalidPlayer,
@@ -31,15 +34,17 @@ public enum LogEvents : byte
 
 public static class Logger
 {
+    public static ScrollRect LogScroll;
+    public static Text LogPanel;
+
     const int Logwidth = 40;
     private static string _log = "";
-    private static Queue<string> _logData = new Queue<string>();
 
     public static void Initialize(GameType type, int players, int rounds, int milliseconds)
     {
         int seconds = milliseconds / 1000;
         _log = "";
-        _logData = new Queue<string>();
+        LogPanel.text = "";
         _log += "*------------MAGE 2 EVENT LOG------------*\r\n";
         _log += "*                                        *\r\n";
         string game = type.ToString();
@@ -56,13 +61,19 @@ public static class Logger
         switch (e)
         {
             case LogEvents.ServerInitialized:
-                Log("Server initialized");
+                Log("Server initialized", false);
                 break;
             case LogEvents.GameBegan:
                 Log("Game started");
                 break;
             case LogEvents.GameEnded:
                 Log("Game over");
+                break;
+            case LogEvents.GamePaused:
+                Log("Game paused");
+                break;
+            case LogEvents.GameUnpaused:
+                Log("Game resumed");
                 break;
             case LogEvents.RoundBegan:
                 Log("Round " + round);
@@ -128,12 +139,14 @@ public static class Logger
         }
     }
 
-    public static void Log(string data)
+    public static void Log(string data, bool newline = true)
     {
         DateTime now = new DateTime(Game.CurrentTime);
-        string log = now.ToString("[HH:mm:ss.fff] ") + data + "\r\n";
+        string log = now.ToString("[HH:mm:ss.fff] ") + data;
+        if (newline) log = "\r\n" + log;
         _log += log;
-        _logData.Enqueue(log);
+        LogPanel.text += log;
+        LogScroll.verticalNormalizedPosition = 0;
     }
 
     public static void Save()
@@ -148,22 +161,6 @@ public static class Logger
         using (StreamWriter sw = File.AppendText(path))
         {
             sw.Write(_log);
-        }
-    }
-
-    public static bool HasData
-    {
-        get
-        {
-            return _logData.Count > 0;
-        }
-    }
-
-    public static string Data
-    {
-        get
-        {
-            return _logData.Dequeue();
         }
     }
 }
