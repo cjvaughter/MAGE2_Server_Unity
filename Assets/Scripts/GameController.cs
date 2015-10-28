@@ -7,15 +7,17 @@ public class GameController : MonoBehaviour
     public ScrollRect logScroll;
     public Text logPanel;
     public GameObject overlay;
-    public GameObject Dimmer;
-    public Text PauseButton;
+    public GameObject PauseDimmer;
+    public GameObject PlayAgainDimmer;
+    public GameObject ExitDimmer;
+
     private bool _paused;
 
     void Start()
     {
         Logger.LogScroll = logScroll;
         Logger.LogPanel = logPanel;
-        Game.Announcer = overlay.GetComponent<OverlayBehavior>();
+        Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
 
         Game.Start();
     }
@@ -25,6 +27,12 @@ public class GameController : MonoBehaviour
         Game.Stop();
     }
 
+    void Update()
+    {
+        int time = (Game.State == GameState.Active) ? Game.TimeRemaining : 0;
+        HUDPanelBehavior.UpdatePanel(time, Game.Round);
+    }
+
     void FixedUpdate()
     {
         Game.Run();
@@ -32,25 +40,47 @@ public class GameController : MonoBehaviour
 
     public void PauseGame()
     {
-        if (_paused)
-        {
-            Game.Unpause();
-            _paused = false;
-            Dimmer.SetActive(false);
-            PauseButton.text = "Pause";
-            Time.timeScale = 1;
-        }
-        else
+        if (!_paused)
         {
             Game.Pause();
             _paused = true;
-            Dimmer.SetActive(true);
-            PauseButton.text = "Resume";
+            PauseDimmer.SetActive(true);
             Time.timeScale = 0;
         }
     }
 
-    public void Quit()
+    public void UnpauseGame()
+    {
+        if (_paused)
+        {
+            Game.Unpause();
+            _paused = false;
+            PauseDimmer.SetActive(false);
+            Time.timeScale = 1;
+        }
+    }
+
+    public void ShowExit()
+    {
+        ExitDimmer.SetActive(true);
+    }
+
+    public void HideExit()
+    {
+        ExitDimmer.SetActive(false);
+    }
+
+    public void ShowPlayAgain()
+    {
+        PlayAgainDimmer.SetActive(true);
+    }
+
+    public void PlayAgain()
+    {
+        Application.LoadLevel(0);
+    }
+
+    public void Exit()
     {
         Application.Quit();
     }

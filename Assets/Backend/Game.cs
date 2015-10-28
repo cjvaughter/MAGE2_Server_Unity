@@ -14,17 +14,20 @@ public enum GameState : byte
 
 public static class Game
 {
-    public static OverlayBehavior Announcer;
+    public static AnnouncerBehavior Announcer;
 
     const int TimeoutPeriod = 3000;
     const int ReadyPeriod = 7000;
 
     static long _lastTime;
-    static int _timeRemaining;
     static int _countdown;
     static bool _running;
 
-    public static long CurrentTime;
+    static TimeSpan UtcOffset { get; set; }
+    public static DateTime Now { get { return DateTime.UtcNow + UtcOffset; } }
+
+    public static long CurrentTime { get; private set; }
+    public static int TimeRemaining { get; private set; }
     public static GameState State { get; private set; }
     public static GameType Type { get; private set; }
     public static IGameRules Rules { get; private set; }
@@ -34,11 +37,16 @@ public static class Game
     public static int PlayerCount { get; private set; }
     public static int RoundLength { get; private set; }
 
+    static Game()
+    {
+        UtcOffset = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now);
+    }
+
     public static void Start()
     {
-        CurrentTime = DateTime.Now.TimeOfDay.Ticks;
+        CurrentTime = Now.TimeOfDay.Ticks;
         _lastTime = CurrentTime;
-        _timeRemaining = 0;
+        TimeRemaining = 0;
         _countdown = 0;
         State = GameState.Waiting;
         Type = (GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
@@ -90,23 +98,26 @@ public static class Game
 
     public static void Pause()
     {
-        Logger.Log(LogEvents.GamePaused);
+        if(State != GameState.Waiting) Logger.Log(LogEvents.GamePaused);
         Coordinator.Pause();
+        Announcer.Pause();
     }
 
     public static void Unpause()
     {
-        CurrentTime = DateTime.Now.TimeOfDay.Ticks;
+        CurrentTime = Now.TimeOfDay.Ticks;
+        _lastTime = CurrentTime;
         Logger.Log(LogEvents.GameUnpaused);
         Players.ResetHeartbeats();
         Coordinator.Unpause();
+        Announcer.Unpause();
     }
 
     public static void Run()
     {
         if (_running)
         {
-            CurrentTime = DateTime.Now.TimeOfDay.Ticks;
+            CurrentTime = Now.TimeOfDay.Ticks;
             ProcessMessages();
             UpdateState();
         }
@@ -165,47 +176,47 @@ public static class Game
         {
             if (Timed && State != GameState.Waiting)
             {
-                _timeRemaining -= TimeSpan.FromTicks(CurrentTime - _lastTime).Milliseconds;
+                TimeRemaining -= TimeSpan.FromTicks(CurrentTime - _lastTime).Milliseconds;
             }
             _lastTime = CurrentTime;
 
-            if (_timeRemaining <= 5000 && _countdown == 5)
+            if (TimeRemaining <= 5000 && _countdown == 5)
             {
                 if(State == GameState.Active) Announcer.Speak(Phrase.Five);
                 if (State == GameState.Ready) Announcer.Speak(Phrase.Ready);
                 _countdown--;
             }
-            else if (_timeRemaining <= 4000 && _countdown == 4)
+            else if (TimeRemaining <= 4000 && _countdown == 4)
             {
                 if (State == GameState.Active) Announcer.Speak(Phrase.Four);
                 _countdown--;
             }
-            else if (_timeRemaining <= 3000 && _countdown == 3)
+            else if (TimeRemaining <= 3000 && _countdown == 3)
             {
                 Announcer.Speak(Phrase.Three);
                 _countdown--;
             }
-            else if (_timeRemaining <= 2000 && _countdown == 2)
+            else if (TimeRemaining <= 2000 && _countdown == 2)
             {
                 Announcer.Speak(Phrase.Two);
                 _countdown--;
             }
-            else if (_timeRemaining <= 1000 && _countdown == 1)
+            else if (TimeRemaining <= 1000 && _countdown == 1)
             {
                 Announcer.Speak(Phrase.One);
                 _countdown--;
             }
 
-            if (_timeRemaining <= 0)
+            if (TimeRemaining <= 0)
             {
-                _timeRemaining = 0;
+                TimeRemaining = 0;
                 switch (State)
                 {
                     case GameState.Waiting:
                         if (Rules.CanStart)
                         {
                             State = GameState.Timeout;
-                            _timeRemaining = TimeoutPeriod;
+                            TimeRemaining = TimeoutPeriod;
                             Logger.Log(LogEvents.GameBegan);
                             switch(Type)
                             {
@@ -229,13 +240,13 @@ public static class Game
                         else
                         {
                             State = GameState.Timeout;
-                            _timeRemaining = TimeoutPeriod;
+                            TimeRemaining = TimeoutPeriod;
                             Announcer.Speak(Phrase.Time);
                         }
                         break;
                     case GameState.Timeout:
                         State = GameState.Ready;
-                        _timeRemaining = ReadyPeriod;
+                        TimeRemaining = ReadyPeriod;
                         Round++;
                         if (Round == Rounds) Announcer.Speak(Phrase.FinalRound);
                         else
@@ -249,7 +260,7 @@ public static class Game
                         break;
                     case GameState.Ready:
                         State = GameState.Active;
-                        _timeRemaining = RoundLength;
+                        TimeRemaining = RoundLength;
                         Logger.Log(LogEvents.RoundBegan, Round);
                         Announcer.Speak(Phrase.Go);
                         _countdown = 5;
@@ -262,15 +273,7 @@ public static class Game
 
             if (Rules.GameIsOver && State != GameState.Waiting) // Did somebody win?
                 State = GameState.Complete;
-
-            UpdateScreen();
         }
-    }
-
-    private static void UpdateScreen()
-    {
-        int time = (State == GameState.Active) ? _timeRemaining : 0;
-        HUDPanelBehavior.UpdatePanel(time, Round);
     }
 
     private static void Wrapup()

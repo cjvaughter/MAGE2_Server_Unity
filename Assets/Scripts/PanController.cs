@@ -35,7 +35,6 @@ public class PanController : MonoBehaviour
             Vector3 movement = mainCamera.ScreenToViewportPoint(Input.mousePosition);
             movement.x = _mouseOrigin.x;
             Vector3 pos = ((_mouseOrigin - movement) * PanSpeed * mainCamera.orthographicSize) + _startPos;
-            pos.y = Mathf.Clamp(pos.y, -10, 0);
             mainCamera.GetComponent<CameraMovement>().SetPosition(pos);
         }
 	}

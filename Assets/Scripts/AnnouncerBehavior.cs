@@ -20,7 +20,7 @@ public enum Phrase
     FinalRound,
 }
 
-public class OverlayBehavior : MonoBehaviour
+public class AnnouncerBehavior : MonoBehaviour
 {
     public Sprite Five, Four, Three, Two, One, Go, Time, Ready,
                   Game, Round1, Round2, Round3, Round4, FinalRound;
@@ -34,13 +34,12 @@ public class OverlayBehavior : MonoBehaviour
     public AudioSource Audio;
 
     private Vector3 fullSize = new Vector3(50, 50, 1);
-    private bool _lerping, _fading, _longFade;
+    private bool _lerping, _fading;
 
     public void Speak(Phrase phrase)
     {
         Audio.Stop();
         _fading = false;
-        _longFade = false;
         switch (phrase)
         {
             case Phrase.Five:
@@ -66,22 +65,18 @@ public class OverlayBehavior : MonoBehaviour
             case Phrase.Go:
                 Renderer.sprite = Go;
                 Audio.clip = GoAudio;
-                _longFade = true;
                 break;
             case Phrase.Time:
                 Renderer.sprite = Time;
                 Audio.clip = TimeAudio;
-                _longFade = true;
                 break;
             case Phrase.Ready:
                 Renderer.sprite = Ready;
                 Audio.clip = ReadyAudio;
-                _longFade = true;
                 break;
             case Phrase.Game:
                 Renderer.sprite = Game;
                 Audio.clip = GameAudio;
-                _longFade = true;
                 break;
             case Phrase.FreeForAll:
                 Renderer.sprite = null;
@@ -94,27 +89,22 @@ public class OverlayBehavior : MonoBehaviour
             case Phrase.Round1:
                 Renderer.sprite = Round1;
                 Audio.clip = Round1Audio;
-                _longFade = true;
                 break;
             case Phrase.Round2:
                 Renderer.sprite = Round2;
                 Audio.clip = Round2Audio;
-                _longFade = true;
                 break;
             case Phrase.Round3:
                 Renderer.sprite = Round3;
                 Audio.clip = Round3Audio;
-                _longFade = true;
                 break;
             case Phrase.Round4:
                 Renderer.sprite = Round4;
                 Audio.clip = Round4Audio;
-                _longFade = true;
                 break;
             case Phrase.FinalRound:
                 Renderer.sprite = FinalRound;
                 Audio.clip = FinalRoundAudio;
-                _longFade = true;
                 break;
             default:
                 Renderer.sprite = null;
@@ -130,6 +120,16 @@ public class OverlayBehavior : MonoBehaviour
         }
         if (Audio.clip != null)
             Audio.Play();
+    }
+
+    public void Pause()
+    {
+        Audio.Pause();
+    }
+
+    public void Unpause()
+    {
+        Audio.UnPause();
     }
 
     void FixedUpdate()
@@ -148,11 +148,10 @@ public class OverlayBehavior : MonoBehaviour
 
         if(_fading)
         {
-            if ((!_longFade && delta.x < 1 && delta.y < 1) || (_longFade && delta.x < 0.1 && delta.y < 0.1))
+            if (delta.x < 0.1 && delta.y < 0.1)
             {
-                Renderer.color = Color.Lerp(Renderer.color, Color.clear, 0.25f);
-                float alpha = Renderer.color.a - Color.clear.a;
-                if (alpha >= 0.99f)
+                Renderer.color = Color.Lerp(Renderer.color, Color.clear, 0.175f);
+                if (Renderer.color.a - Color.clear.a >= 0.99f)
                 {
                     Renderer.color = Color.clear;
                     _fading = false;

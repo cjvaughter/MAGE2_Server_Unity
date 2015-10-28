@@ -153,10 +153,10 @@ public static class Logger
     {
         Directory.CreateDirectory(".\\Logs");
         int count = 1;
-        string path = ".\\Logs\\MAGE2_" + DateTime.Now.ToString("MM.dd.yy") + "_1.log";
+        string path = ".\\Logs\\MAGE2_" + Game.Now.ToString("MM.dd.yy") + "_1.log";
         while (File.Exists(path))
         {
-            path = ".\\Logs\\MAGE2_" + DateTime.Now.ToString("MM.dd.yy") + "_" + count++ + ".log";
+            path = ".\\Logs\\MAGE2_" + Game.Now.ToString("MM.dd.yy") + "_" + count++ + ".log";
         }
         using (StreamWriter sw = File.AppendText(path))
         {

@@ -1,15 +1,16 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class PanelBehavior : MonoBehaviour
 {
     void OnMouseUpAsButton()
     {
+        if (EventSystem.current.IsPointerOverGameObject()) return;
         Select();
     }
 
-    void Select()
+    public void Select()
     {
-        Camera.main.GetComponent<CameraMovement>().SetPosition(transform.position);
-        Camera.main.GetComponent<CameraMovement>().SetZoom(100);
+        Camera.main.GetComponent<CameraMovement>().SelectPlayer(gameObject);
     }
 }

@@ -1,7 +1,9 @@
 ﻿using UnityEngine;
 using System;
+using System.Reflection;
 using System.Data;
 using System.Data.SQLite;
+//using Mono.Data.SQLite;
 using System.IO;
 
 public static class Database
@@ -12,9 +14,28 @@ public static class Database
     static SQLiteDataReader _dataReader;
     public static DataTable DTPlayers = new DataTable();
     public static DataTable DTDevices = new DataTable();
+
+    private static string _loadException;
         
+    static Database()
+    {
+        //#if RELEASE
+        try
+        {
+            Assembly.LoadFrom("./m2_server_Data/Plugins/SQLite.Interop.dll");
+        }
+        catch(Exception e)
+        {
+            Debug.Log(e.Message);
+            _loadException = e.Message;
+        }
+        //#endif
+    }
+
     public static void Connect()
     {
+        if (_loadException != null) Logger.Log(_loadException + "\r\n\r\n");
+
         _connection = new SQLiteConnection(Constants.ConnectionString);
         _connection.Open();
     }
@@ -72,14 +93,14 @@ public static class Database
         _cmd.Parameters.Add(new SQLiteParameter("@id", id));
         _dataReader = _cmd.ExecuteReader();
         _dataReader.Read();
-        Player p = new Player((string) _dataReader["Name"], Convert.ToUInt16((string) _dataReader["ID"], 16),
-                                (byte[]) _dataReader["Picture"], (TeamColor) Enum.Parse(typeof (TeamColor),
-                                (string) _dataReader["Team"], true), Convert.ToInt32((long) _dataReader["Level"]),
-                                Convert.ToInt32((long) _dataReader["XP"]), Convert.ToInt32((long) _dataReader["Strength"]),
-                                Convert.ToInt32((long) _dataReader["Defense"]), Convert.ToInt32((long) _dataReader["Luck"]),
-                                Convert.ToInt32((long) _dataReader["Health"]), Convert.ToInt32((long) _dataReader["LevelsPending"]))
+        Player p = new Player((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
+                                (byte[])_dataReader["Picture"], (TeamColor)Enum.Parse(typeof(TeamColor),
+                                (string)_dataReader["Team"], true), Convert.ToInt32((long)_dataReader["Level"]),
+                                Convert.ToInt32((long)_dataReader["XP"]), Convert.ToInt32((long)_dataReader["Strength"]),
+                                Convert.ToInt32((long)_dataReader["Defense"]), Convert.ToInt32((long)_dataReader["Luck"]),
+                                Convert.ToInt32((long)_dataReader["Health"]), Convert.ToInt32((long)_dataReader["LevelsPending"]))
         {
-            Heartbeat = DateTime.Now.TimeOfDay.Ticks
+            Heartbeat = Game.Now.TimeOfDay.Ticks,
         };
         return p;
     }
