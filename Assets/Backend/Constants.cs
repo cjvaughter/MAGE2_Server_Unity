@@ -28,6 +28,11 @@ public static class Constants
     public const string UpdateDevice = Update + "Devices SET Name=@name, ID=@new_id, Picture=@picture, Type=@type, Description=@description, Destructible=@destructible WHERE ID=@ID";
     public const string UpdatePlayer = Update + "Players SET Name=@name, ID=@new_id, Picture=@picture, Team=@team WHERE ID=@ID";
 
+    public const float Aspect_16_9 = (float)16.0f / 9.0f;
+    public const float Aspect_16_10 = (float)16.0f / 10.0f;
+    public const float Aspect_4_3 = (float)4.0f / 3.0f;
+    public const float Aspect_5_4 = (float)5.0f / 4.0f;
+
     public const float OffsetY = 0;
     public const float RedX = -10.5f;
     public const float YellowX = -3.5f;
