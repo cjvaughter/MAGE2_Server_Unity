@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Threading;
+using System.IO.Ports;
 
 public static class Coordinator
 {
@@ -26,14 +26,14 @@ public static class Coordinator
         Serial.DataBits = 8;
         Serial.StopBits = StopBits.One;
         Serial.ReadTimeout = 500;
-        //Serial.Open();
+        Serial.Open();
 
         //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
         //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
         Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0xCC, 0xCC, 0xEE, 0xEE }));
 
-        //StartThreads();
+        StartThreads();
     }
 
     private static void StartThreads()

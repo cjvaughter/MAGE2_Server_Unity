@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.IO.Ports;
 
 public class GameController : MonoBehaviour
 {
@@ -23,6 +24,12 @@ public class GameController : MonoBehaviour
         Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
 
         Game.Start();
+
+        Logger.Log("Available Ports:");
+        foreach (string s in SerialPort.GetPortNames())
+        {
+            Logger.Log(" -- " + s + " -- ");
+        }
     }
 
     void OnApplicationQuit()
