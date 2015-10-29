@@ -17,7 +17,7 @@ public class GameController : MonoBehaviour
     {
         Logger.LogScroll = logScroll;
         Logger.LogPanel = logPanel;
-#if RELEASE
+#if !UNITY_EDITOR
         Console.SetOut(new ConsoleWriter(logPanel));
 #endif
         Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();

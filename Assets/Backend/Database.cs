@@ -71,17 +71,20 @@ public static class Database
         _cmd = new SqliteCommand(Constants.SelectPlayer, _connection);
         _cmd.Parameters.Add(new SqliteParameter("@id", id));
         _dataReader = _cmd.ExecuteReader();
-        _dataReader.Read();
-        Player p = new Player((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
-                                (byte[])_dataReader["Picture"], (TeamColor)Enum.Parse(typeof(TeamColor),
-                                (string)_dataReader["Team"], true), Convert.ToInt32((long)_dataReader["Level"]),
-                                Convert.ToInt32((long)_dataReader["XP"]), Convert.ToInt32((long)_dataReader["Strength"]),
-                                Convert.ToInt32((long)_dataReader["Defense"]), Convert.ToInt32((long)_dataReader["Luck"]),
-                                Convert.ToInt32((long)_dataReader["Health"]), Convert.ToInt32((long)_dataReader["LevelsPending"]))
+        if (_dataReader.Read())
         {
-            Heartbeat = Game.Now.TimeOfDay.Ticks,
-        };
-        return p;
+            Player p = new Player((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
+                                    (byte[])_dataReader["Picture"], (TeamColor)Enum.Parse(typeof(TeamColor),
+                                    (string)_dataReader["Team"], true), Convert.ToInt32((long)_dataReader["Level"]),
+                                    Convert.ToInt32((long)_dataReader["XP"]), Convert.ToInt32((long)_dataReader["Strength"]),
+                                    Convert.ToInt32((long)_dataReader["Defense"]), Convert.ToInt32((long)_dataReader["Luck"]),
+                                    Convert.ToInt32((long)_dataReader["Health"]), Convert.ToInt32((long)_dataReader["LevelsPending"]))
+            {
+                Heartbeat = Game.Now.TimeOfDay.Ticks,
+            };
+            return p;
+        }
+        return null;
     }
         
     public static void FillDevices()
@@ -134,16 +137,20 @@ public static class Database
         _cmd = new SqliteCommand(Constants.SelectDevice, _connection);
         _cmd.Parameters.Add(new SqliteParameter("@id", id));
         _dataReader = _cmd.ExecuteReader();
-        _dataReader.Read();
-        Device d = new Device((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
+        if (_dataReader.Read())
+        {
+            Device d = new Device((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
                                 (byte[])_dataReader["Picture"], (DeviceType)Enum.Parse(typeof(DeviceType),
                                 (string)_dataReader["Type"], true), (string)_dataReader["Description"], ((long)_dataReader["Destructible"] > 0));
-        return d;
+            return d;
+        }
+        return null;
     }
         
     public static void Create()
     {
         if (File.Exists(Constants.DatabaseName)) return;
+
         SqliteConnection.CreateFile(Constants.DatabaseName);
         Connect();
         _cmd = new SqliteCommand(Constants.CreatePlayersTable, _connection);

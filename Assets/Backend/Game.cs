@@ -72,9 +72,15 @@ public static class Game
         RoundLength = Settings.RoundLength * 1000;
         
         Logger.Initialize(Type, PlayerCount, Rounds, RoundLength);
+        Logger.Log("Logger initialized!", false);
         HUDPanelBehavior.Initialize(Settings.GameType, Rounds);
+        Logger.Log("HUD Panel initialized!");
         Coordinator.Start();
+        Logger.Log("Coordinator started!");
+        Database.Create();
+        Logger.Log("Connecting to Database...");
         Database.Connect();
+        Logger.Log("Connected!\r\n");
         Logger.Log(LogEvents.ServerInitialized);
         _running = true;
     }
