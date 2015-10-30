@@ -15,11 +15,6 @@ public static class Coordinator
 
     public static void Start()
     {
-        Logger.Log("Available Ports:");
-        foreach(string s in GetPorts())
-        {
-            Logger.Log(" -- " + s + " -- ");
-        }
         Serial.PortName = Settings.Port;
         Serial.BaudRate = Settings.BaudRate;
         Serial.Parity = Parity.None;
@@ -28,10 +23,10 @@ public static class Coordinator
         Serial.ReadTimeout = 500;
         Serial.Open();
 
-        //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
         //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
         Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0xCC, 0xCC, 0xEE, 0xEE }));
+        Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
         StartThreads();
     }
@@ -131,18 +126,8 @@ public static class Coordinator
         Outbox.Enqueue(msg);
     }
 
-    //Move this function to config window
     public static string[] GetPorts()
     {
         return SerialPort.GetPortNames();
-    }
-
-    //refactor this function
-    public static void SetBaud(int baud)
-    {
-        Serial.BaudRate = baud;
-        Serial.Parity = Parity.Odd;
-        Serial.DataBits = 8;
-        Serial.StopBits = StopBits.One;
     }
 }

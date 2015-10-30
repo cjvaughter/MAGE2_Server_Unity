@@ -1,9 +1,9 @@
 ﻿
 public enum GameType : byte
 {
-    TestMode,
     FreeForAll,
     TeamBattle,
+    TestMode,
 }
 
 public interface IGameRules
@@ -14,28 +14,6 @@ public interface IGameRules
     bool PlayersCanBeSaved { get; }
     bool OneHitKill { get; }
     Entity WhoWon { get; }
-}
-
-public class TestMode : IGameRules
-{
-    public bool CanStart {
-        get { return true; }
-    }
-    public bool GameIsOver {
-        get { return false; }
-    }
-    public bool ConnectAnytime {
-        get { return true; }
-    }
-    public bool PlayersCanBeSaved {
-        get { return true; }
-    }
-    public bool OneHitKill {
-        get { return false; }
-    }
-    public Entity WhoWon {
-        get { return null; }
-    }
 }
 
 public class FreeForAll : IGameRules
@@ -84,3 +62,30 @@ public class TeamBattle : IGameRules
     }
 }
 
+public class TestMode : IGameRules
+{
+    public bool CanStart
+    {
+        get { return true; }
+    }
+    public bool GameIsOver
+    {
+        get { return false; }
+    }
+    public bool ConnectAnytime
+    {
+        get { return true; }
+    }
+    public bool PlayersCanBeSaved
+    {
+        get { return true; }
+    }
+    public bool OneHitKill
+    {
+        get { return false; }
+    }
+    public Entity WhoWon
+    {
+        get { return null; }
+    }
+}

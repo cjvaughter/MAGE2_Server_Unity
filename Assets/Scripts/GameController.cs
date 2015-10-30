@@ -11,8 +11,15 @@ public class GameController : MonoBehaviour
     public GameObject PauseDimmer;
     public GameObject PlayAgainDimmer;
     public GameObject ExitDimmer;
+    public GameObject FaderIn;
+    public GameObject FaderOut;
 
     private bool _paused;
+
+    void Awake()
+    {
+        FaderIn.SetActive(true);
+    }
 
     void Start()
     {
@@ -24,12 +31,6 @@ public class GameController : MonoBehaviour
         Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
 
         Game.Start();
-
-        Logger.Log("Available Ports:");
-        foreach (string s in SerialPort.GetPortNames())
-        {
-            Logger.Log(" -- " + s + " -- ");
-        }
     }
 
     void OnApplicationQuit()
@@ -87,11 +88,12 @@ public class GameController : MonoBehaviour
 
     public void PlayAgain()
     {
-        Application.LoadLevel(0);
+        Application.LoadLevel("GameScreen");
     }
 
     public void Exit()
     {
-        Application.Quit();
+        Game.Stop();
+        FaderOut.SetActive(true);
     }
 }

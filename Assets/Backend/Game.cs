@@ -48,14 +48,17 @@ public static class Game
         _lastTime = CurrentTime;
         TimeRemaining = 0;
         _countdown = 0;
+
         State = GameState.Waiting;
+        Round = 0;
+        Rounds = Settings.Rounds;
+        Timed = true;
+        PlayerCount = Settings.PlayerCount;
+        RoundLength = Settings.RoundLength * 1000;
+
         Type = (GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
         switch (Type)
         {
-            case GameType.TestMode:
-                Rules = new TestMode();
-                State = GameState.Active;
-                break;
             case GameType.FreeForAll:
                 Rules = new FreeForAll();
                 break;
@@ -64,23 +67,19 @@ public static class Game
                 Teams.Add(new Team());
                 Teams.Add(new Team());
                 break;
+            case GameType.TestMode:
+                Rules = new TestMode();
+                State = GameState.Active;
+                Rounds = 0;
+                Timed = false;
+                break;
         }
-        Round = 0;
-        Rounds = Settings.Rounds;
-        Timed = Settings.Timed;
-        PlayerCount = Settings.PlayerCount;
-        RoundLength = Settings.RoundLength * 1000;
         
         Logger.Initialize(Type, PlayerCount, Rounds, RoundLength);
-        Logger.Log("Logger initialized!", false);
         HUDPanelBehavior.Initialize(Settings.GameType, Rounds);
-        Logger.Log("HUD Panel initialized!");
         Coordinator.Start();
-        Logger.Log("Coordinator started!");
         Database.Create();
-        Logger.Log("Connecting to Database...");
         Database.Connect();
-        Logger.Log("Connected!\r\n");
         Logger.Log(LogEvents.ServerInitialized);
         _running = true;
     }
@@ -140,11 +139,10 @@ public static class Game
                 Players.Get(msg.Address).Heartbeat = CurrentTime;
                 break;
             case MsgFunc.Connect:
-                if (State == GameState.Waiting)
+                if (State == GameState.Waiting || Rules.ConnectAnytime)
                 {
                     if (Players.Add(msg))
                     {
-                        //_wnd.BeginInvoke(new Action(() => _wnd.AddPlayer(Players.Get(msg.Address))));
                         Player p = Players.Get(msg.Address);
                         Coordinator.SendMessage(new MAGEMsg(msg.Address, new[] { (byte)MsgFunc.Connect, (byte)p.Team }));
                     }
@@ -213,7 +211,7 @@ public static class Game
                 _countdown--;
             }
 
-            if (TimeRemaining <= 0)
+            if (Timed && TimeRemaining <= 0)
             {
                 TimeRemaining = 0;
                 switch (State)
