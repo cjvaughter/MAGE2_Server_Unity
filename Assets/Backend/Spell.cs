@@ -37,11 +37,27 @@ public enum SpellType : byte
     //Add new spells here
     NumberOfSpells
 }
-
-
+/*
+public enum SpellEffect
+{
+    Health,
+    Stun,
+    Strength,
+    Defense,
+    Luck,
+}
+*/
 [SuppressMessage("ReSharper", "RedundantExplicitArraySize")]
 public static class Spell
 {
+    /*
+    public SpellType Type { get; set; }
+    public SpellEffect Primary { get; set; }
+    public SpellEffect Secondary { get; set; }
+    public SpellEffect Temporary { get; set; }
+    public bool Overridable { get; set; }
+    public long Length { get; set; }*/
+
     public const long SpellTimeout = TimeSpan.TicksPerSecond*2;
     public const int MaxChance = 100;
     static List<IRPacket> SpellQueue = new List<IRPacket>();
@@ -104,7 +120,12 @@ public static class Spell
         float odds = ((float)caster.Strength / (caster.Strength + defender.Defense)) * MaxChance;
         odds += Chance.Next(caster.Luck);
         odds -= Chance.Next(defender.Luck);
+
+#if RELEASE
         bool success = odds >= Chance.Next(MaxChance);
+#elif DEBUG
+        bool success = true;
+#endif
 
         if (success)
         {
@@ -112,16 +133,19 @@ public static class Spell
             {
                 case SpellType.GenericDamage:
                     defender.Health -= 5;
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100) }));
+                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100), (byte)MsgFunc.UpdateDisplay, (byte)Colors.NoColor }));
                     break;
                 case SpellType.GenericStun:
                     defender.State = EntityState.Stunned;
                     defender.ActiveEffect = new SpellEffect(3000);
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.State, (byte)defender.State}));
+                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.State, (byte)defender.State, (byte)MsgFunc.UpdateDisplay, (byte)Colors.Blue }));
                     break;
                 case SpellType.GenericHeal:
                     defender.Health += 5;
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100) }));
+                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100), (byte)MsgFunc.UpdateDisplay, (byte)Colors.Green }));
+                    break;
+                case SpellType.Fire:
+
                     break;
             }
             caster.Hits++;
@@ -138,9 +162,8 @@ public static class Spell
 
 public class SpellEffect
 {
+    //public 
     public long ExpireTime { get; set; }
-    public bool Overridable { get; set; }
-
     public SpellEffect(int lengthMillis)
     {
         ExpireTime = Game.CurrentTime + TimeSpan.TicksPerMillisecond * lengthMillis;

@@ -15,8 +15,11 @@ public enum MsgFunc
     Disconnect,
     Health,
     State,
+    UpdateDisplay,
     ReceivedSpell,
     SentSpell,
+
+    DFU = 0xFF
 }
 
 public class MAGEMsg

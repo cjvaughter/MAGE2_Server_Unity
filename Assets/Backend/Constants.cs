@@ -3,6 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+public enum Colors : byte
+{
+    Red,
+    Orange,
+    Yellow,
+    Green,
+    Blue,
+    Cyan,
+    Purple,
+    White,
+    NoColor = 0xFF,
+}
+
 public static class Constants
 {
     private const string Delete = "DELETE FROM ";
