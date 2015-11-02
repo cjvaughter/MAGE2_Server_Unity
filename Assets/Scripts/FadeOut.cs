@@ -6,7 +6,13 @@ public class FadeOut : MonoBehaviour
     public Image image;
     public string Scene = "";
     private bool _lerping = true;
-    private Color _target = new Color(34.0f / 255.0f, 44.0f / 255.0f, 55.0f / 255.0f);
+    private Color _target;
+
+    void Start()
+    {
+        _target = image.color;
+        _target.a = 1.0f;
+    }
 
     void FixedUpdate()
     {

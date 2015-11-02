@@ -6,6 +6,7 @@ public class ConfigController : MonoBehaviour
 {
     public GameObject FaderIn;
     public GameObject FaderOut;
+    public GameObject FaderFromSplash;
     public UpDown RoundLength;
     public UpDown Rounds;
     public UpDown Players;
@@ -16,6 +17,12 @@ public class ConfigController : MonoBehaviour
 
     void Awake()
     {
+        FaderFromSplash.SetActive(true);
+    }
+
+    void OnLevelWasLoaded()
+    {
+        FaderFromSplash.SetActive(false);
         FaderIn.SetActive(true);
     }
 
@@ -50,6 +57,7 @@ public class ConfigController : MonoBehaviour
         foreach(string s in Coordinator.GetPorts())
         {
             port.options.Add(new Dropdown.OptionData(s));
+            Debug.Log(s);
             if (s == Settings.Port) selection = count;
             count++;
         }

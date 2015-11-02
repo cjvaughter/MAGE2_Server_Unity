@@ -40,11 +40,15 @@ public static class Logger
     const int Logwidth = 40;
     private static string _log = "";
 
-    public static void Initialize(GameType type, int players, int rounds, int milliseconds)
+    public static void Initialize()
     {
-        int seconds = milliseconds / 1000;
         _log = "";
         LogPanel.text = "";
+    }
+
+    public static void Begin(GameType type, int players, int rounds, int milliseconds)
+    {
+        int seconds = milliseconds / 1000;
         _log += "*------------MAGE 2 EVENT LOG------------*\r\n";
         _log += "*                                        *\r\n";
         string game = type.ToString();
@@ -81,12 +85,6 @@ public static class Logger
             case LogEvents.RoundEnded:
                 Log("Round " + round + " ended");
                 break;
-            case LogEvents.InvalidPlayer:
-                Log("Unknown player - connection refused");
-                break;
-            case LogEvents.InvalidDevice:
-                Log("Unknown device - connection refused");
-                break;
             case LogEvents.InvalidMessage:
                 Log("Unknown message received");
                 break;
@@ -121,6 +119,20 @@ public static class Logger
                 break;
             case LogEvents.Won:
                 Log(entity.Name + " won the game");
+                break;
+        }
+    }
+
+    //Connecr Errors
+    public static void Log(LogEvents e, ushort id)
+    {
+        switch (e)
+        {
+            case LogEvents.InvalidPlayer:
+                Log("Unknown player " + id.ToString("X4") + " - connection refused");
+                break;
+            case LogEvents.InvalidDevice:
+                Log("Unknown device " + id.ToString("X4") + " - connection refused");
                 break;
         }
     }

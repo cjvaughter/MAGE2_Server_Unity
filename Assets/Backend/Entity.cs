@@ -25,7 +25,6 @@ public class Entity
 
 public class Player : Entity
 {
-    int _health;
     public Player() { }
     public Player(string name, ushort id, byte[] picture, TeamColor team, int level, int xp, int strength, int defense, int luck, int maxhealth, int levelspending)
     {
@@ -50,6 +49,9 @@ public class Player : Entity
         Panel.transform.Find("Name").GetComponent<TextMesh>().text = Name;
         Panel.transform.Find("Player").GetComponent<MeshRenderer>().material.mainTexture = Picture;
         Panel.transform.Find("Device").GetComponent<MeshRenderer>().material.mainTexture = Device.Picture;
+        PanelStatus = Panel.transform.Find("Status").GetComponent<TextMesh>();
+        PanelStatus.text = State.ToString();
+        HealthBar = Panel.transform.Find("Health").GetComponent<HealthBehavior>();
         if (Game.Type == GameType.TeamBattle)
             switch (Team)
             {
@@ -59,7 +61,7 @@ public class Player : Entity
                 case TeamColor.Yellow:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Yellow") as Material;
                     Panel.transform.Find("Name").GetComponent<TextMesh>().color = Color.black;
-                    Panel.transform.Find("Status").GetComponent<TextMesh>().color = Color.black;
+                    PanelStatus.color = Color.black;
                     break;
                 case TeamColor.Green:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Green") as Material;
@@ -74,6 +76,8 @@ public class Player : Entity
     public Texture2D Picture { get; private set; }
 
     private GameObject Panel;
+    private TextMesh PanelStatus;
+    private HealthBehavior HealthBar;
 
     public int Level { get; set; }
     public int LevelsPending { get; set; }
@@ -90,7 +94,23 @@ public class Player : Entity
     public int Deaths { get; set; }
     public float KD { get { if (Deaths == 0) return 0; return (float)Kills/Deaths; } }
 
-    public int Health { get { return _health; } set { if (value <= 0) { _health = 0; State = EntityState.Dead; } else { _health = value; State = EntityState.Alive; } } }
+    private int _health;
+    public int Health
+    {
+        get { return _health; }
+        set
+        {
+            if (value <= 0) { _health = 0; State = EntityState.Dead; }
+            else { _health = value; if (_health > MaxHealth) _health = MaxHealth; State = EntityState.Alive; }
+            if (HealthBar) HealthBar.SetHealth(_health, MaxHealth);
+        }
+    }
+
+    private EntityState _state;
+    public new EntityState State { get { return _state; } set { _state = value; if(PanelStatus) PanelStatus.text = _state.ToString(); } }
+
+    public SpellEffect ActiveEffect { get; set; }
+
     public ulong Address { get; set; }
     public long Heartbeat { get; set; }
     public bool Connected { get; set; }

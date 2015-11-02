@@ -5,6 +5,13 @@ public class FadeIn : MonoBehaviour
 {
     public Image image;
     private bool _lerping = true;
+    private Color _target;
+
+    void Start()
+    {
+        _target = image.color;
+        _target.a = 0f;
+    }
 
 	void FixedUpdate ()
     {

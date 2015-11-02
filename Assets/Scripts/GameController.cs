@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO.Ports;
+using System.Collections;
 
 public class GameController : MonoBehaviour
 {
@@ -25,12 +26,20 @@ public class GameController : MonoBehaviour
     {
         Logger.LogScroll = logScroll;
         Logger.LogPanel = logPanel;
-#if !UNITY_EDITOR
-        Console.SetOut(new ConsoleWriter(logPanel));
-#endif
-        Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
+        Logger.Initialize();
 
-        Game.Start();
+        try
+        {
+        #if !UNITY_EDITOR
+            Console.SetOut(new ConsoleWriter(logPanel));
+        #endif
+            Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
+            Game.Start();
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e.Message);
+        }
     }
 
     void OnApplicationQuit()
@@ -46,34 +55,58 @@ public class GameController : MonoBehaviour
 
     void FixedUpdate()
     {
-        Game.Run();
+        try
+        {
+            Game.Run();
+        }
+        catch(Exception e)
+        {
+            Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
+        }
     }
 
     public void PauseGame()
     {
-        if (!_paused)
+        try
         {
-            Game.Pause();
-            _paused = true;
-            PauseDimmer.SetActive(true);
-            Time.timeScale = 0;
+            if (!_paused && Game.State != GameState.Waiting)
+            {
+                Game.Pause();
+                _paused = true;
+                PauseDimmer.SetActive(true);
+                Time.timeScale = 0;
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.Log(e.Message);
         }
     }
 
     public void UnpauseGame()
     {
-        if (_paused)
+        try
+        { 
+            if (_paused)
+            {
+                Game.Unpause();
+                _paused = false;
+                PauseDimmer.SetActive(false);
+                Time.timeScale = 1;
+            }
+        }
+        catch (Exception e)
         {
-            Game.Unpause();
-            _paused = false;
-            PauseDimmer.SetActive(false);
-            Time.timeScale = 1;
+            Logger.Log(e.Message);
         }
     }
 
     public void ShowExit()
     {
-        ExitDimmer.SetActive(true);
+        if (Game.State != GameState.Waiting)
+            ExitDimmer.SetActive(true);
+        else
+            Exit();
     }
 
     public void HideExit()
@@ -91,9 +124,14 @@ public class GameController : MonoBehaviour
         Application.LoadLevel("GameScreen");
     }
 
-    public void Exit()
+    void Exit()
     {
-        Game.Stop();
+        StartCoroutine("Stop"); //Game.Stop can hang for a second, this eliminates the user seeing that
         FaderOut.SetActive(true);
+    }
+
+    IEnumerator Stop()
+    {
+        return Game.Stop();
     }
 }

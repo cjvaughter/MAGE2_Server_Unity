@@ -8,10 +8,12 @@ public static class Players
 
     public static List<Player> PlayerList = new List<Player>();
 
-    public static bool Add(MAGEMsg msg)
+    public static Player Add(MAGEMsg msg)
     {
-        Player p = Database.GetPlayer((ushort)((msg.Data[1]<<8) + msg.Data[2]));
-        Device d = Database.GetDevice((ushort)((msg.Data[3]<<8) + msg.Data[4]));
+        ushort playerID = (ushort)((msg.Data[1] << 8) + msg.Data[2]);
+        ushort deviceID = (ushort)((msg.Data[3] << 8) + msg.Data[4]);
+        Player p = Database.GetPlayer(playerID);
+        Device d = Database.GetDevice(deviceID);
         if (p != null && d != null)
         {
             p.Device = d;
@@ -20,11 +22,11 @@ public static class Players
             p.CreatePanel();
             PlayerList.Add(p);
             Logger.Log(LogEvents.Connected, p);
-            return true;
+            return p;
         }
-        if (p == null) Logger.Log(LogEvents.InvalidPlayer);
-        if (d == null) Logger.Log(LogEvents.InvalidDevice);
-        return false;
+        if (p == null) Logger.Log(LogEvents.InvalidPlayer, playerID);
+        if (d == null) Logger.Log(LogEvents.InvalidDevice, deviceID);
+        return null;
     }
 
     public static void Remove(Player p) { PlayerList.Remove(p); }
@@ -52,6 +54,25 @@ public static class Players
         foreach (Player p in PlayerList.Where(p => p.Connected))
         {
             p.Heartbeat = Game.CurrentTime;
+        }
+    }
+
+    public static void ClearExpiredEffects()
+    {
+        foreach (Player p in PlayerList.Where(p => p.ActiveEffect != null && Game.CurrentTime >= p.ActiveEffect.ExpireTime))
+        {
+            p.ActiveEffect = null;
+            p.State = EntityState.Alive;
+            Coordinator.SendMessage(new MAGEMsg(p.Address, new[] { (byte)MsgFunc.State, (byte)EntityState.Alive }));
+        }
+    }
+
+    public static void ResetPlayers()
+    {
+        foreach (Player p in PlayerList)
+        {
+            p.State = EntityState.Alive;
+            p.Health = p.MaxHealth;
         }
     }
 }

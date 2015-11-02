@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-public struct IRID
+public class IRPacket
 {
     public ushort ID;
-    public byte Func;
-    public byte Uni;
+    public SpellType Spell;
+    public byte Unique;
     public long Timestamp;
 }
 
@@ -12,8 +12,11 @@ public enum MsgFunc
 {
     Heartbeat,
     Connect,
+    Disconnect,
+    Health,
+    State,
+    ReceivedSpell,
     SentSpell,
-    RecievedSpell,
 }
 
 public class MAGEMsg
