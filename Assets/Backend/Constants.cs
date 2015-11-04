@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
+﻿
 public enum Colors : byte
 {
     Red,
     Orange,
     Yellow,
     Green,
-    Blue,
     Cyan,
+    Blue,
     Purple,
     White,
     NoColor = 0xFF,
@@ -41,10 +37,10 @@ public static class Constants
     public const string UpdateDevice = Update + "Devices SET Name=@name, ID=@new_id, Picture=@picture, Type=@type, Description=@description, Destructible=@destructible WHERE ID=@ID";
     public const string UpdatePlayer = Update + "Players SET Name=@name, ID=@new_id, Picture=@picture, Team=@team WHERE ID=@ID";
 
-    public const float Aspect_16_9 = (float)16.0f / 9.0f;
-    public const float Aspect_16_10 = (float)16.0f / 10.0f;
-    public const float Aspect_4_3 = (float)4.0f / 3.0f;
-    public const float Aspect_5_4 = (float)5.0f / 4.0f;
+    public const float Aspect_16_9 =  16.0f / 9.0f;
+    public const float Aspect_16_10 = 16.0f / 10.0f;
+    public const float Aspect_4_3 =   4.0f / 3.0f;
+    public const float Aspect_5_4 =   5.0f / 4.0f;
 
     public const float OffsetY = 0;
     public const float RedX = -10.5f;

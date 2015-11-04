@@ -63,7 +63,7 @@ public static class Players
         {
             p.ActiveEffect = null;
             p.State = EntityState.Alive;
-            Coordinator.SendMessage(p.Address, (byte)MsgFunc.State, (byte)EntityState.Alive);
+            Coordinator.SendMessage(p.Address, (byte)MsgFunc.State, (byte)EntityState.Alive, (byte)MsgFunc.Update);
         }
     }
 

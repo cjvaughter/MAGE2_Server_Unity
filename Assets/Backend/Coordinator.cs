@@ -27,6 +27,7 @@ public static class Coordinator
         //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
         Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xCC, 0xCC, 0xEE, 0xEE }));
+                                //0x13A200409377D6
         //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
         StartThreads();

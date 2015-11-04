@@ -21,7 +21,7 @@ public enum EntityState : byte
 public class Entity
 {
     public string Name { get; set; }
-    public TeamColor Team { get; set; }
+    public Colors Team { get; set; }
     public EntityState State { get; set; }
     //public Spell ActiveEffect { get; set; }
 }
@@ -29,7 +29,7 @@ public class Entity
 public class Player : Entity
 {
     public Player() { }
-    public Player(string name, ushort id, byte[] picture, TeamColor team, int level, int xp, int strength, int defense, int luck, int maxhealth, int levelspending)
+    public Player(string name, ushort id, byte[] picture, Colors team, int level, int xp, int strength, int defense, int luck, int maxhealth, int levelspending)
     {
         Name = name;
         ID = id;
@@ -58,18 +58,18 @@ public class Player : Entity
         if (Game.Type == GameType.TeamBattle)
             switch (Team)
             {
-                case TeamColor.Red:
+                case Colors.Red:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Red") as Material;
                     break;
-                case TeamColor.Yellow:
+                case Colors.Yellow:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Yellow") as Material;
                     Panel.transform.Find("Name").GetComponent<TextMesh>().color = Color.black;
                     PanelStatus.color = Color.black;
                     break;
-                case TeamColor.Green:
+                case Colors.Green:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Green") as Material;
                     break;
-                case TeamColor.Blue:
+                case Colors.Blue:
                     Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Blue") as Material;
                     break;
             }

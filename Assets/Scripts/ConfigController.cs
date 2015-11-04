@@ -57,7 +57,6 @@ public class ConfigController : MonoBehaviour
         foreach(string s in Coordinator.GetPorts())
         {
             port.options.Add(new Dropdown.OptionData(s));
-            Debug.Log(s);
             if (s == Settings.Port) selection = count;
             count++;
         }

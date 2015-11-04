@@ -137,14 +137,16 @@ public class GameController : MonoBehaviour
 
     public void Damage()
     {
-        Player me = Players.Get(0x13A20040A994A1);
+        Player me = Players.Get(0xCCCC);
         me.Health -= 5;
+        me.State = EntityState.Damaged;
+        me.ActiveEffect = new SpellEffect(1000);
         Coordinator.UpdatePlayer(me);
     }
 
     public void Stun()
     {
-        Player me = Players.Get(0x13A20040A994A1);
+        Player me = Players.Get(0xCCCC);
         me.State = EntityState.Stunned;
         me.ActiveEffect = new SpellEffect(3000);
         Coordinator.UpdatePlayer(me);
@@ -152,8 +154,10 @@ public class GameController : MonoBehaviour
 
     public void Heal()
     {
-        Player me = Players.Get(0x13A20040A994A1);
+        Player me = Players.Get(0xCCCC);
         me.Health += 5;
+        me.State = EntityState.Healed;
+        me.ActiveEffect = new SpellEffect(1000);
         Coordinator.UpdatePlayer(me);
     }
 }

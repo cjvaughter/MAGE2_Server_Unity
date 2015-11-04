@@ -89,7 +89,7 @@ public static class Game
     {
         if (_running)
         {
-            Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
+            Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.Disconnect);
 
             if (State == GameState.Complete)
                 Wrapup();
@@ -142,7 +142,7 @@ public static class Game
         {
             if ((MsgFunc)msg.Data[0] != MsgFunc.Connect)
             {
-                Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
+                Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect);
                 return;
             }
         }
@@ -180,7 +180,7 @@ public static class Game
                     else
                     {
                         Logger.Log(LogEvents.ConnectDuringGame);
-                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
+                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect);
                     }
                 }
                 break;

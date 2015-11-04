@@ -74,7 +74,7 @@ public static class Database
         if (_dataReader.Read())
         {
             Player p = new Player((string)_dataReader["Name"], Convert.ToUInt16((string)_dataReader["ID"], 16),
-                                    (byte[])_dataReader["Picture"], (TeamColor)Enum.Parse(typeof(TeamColor),
+                                    (byte[])_dataReader["Picture"], (Colors)Enum.Parse(typeof(Colors),
                                     (string)_dataReader["Team"], true), Convert.ToInt32((long)_dataReader["Level"]),
                                     Convert.ToInt32((long)_dataReader["XP"]), Convert.ToInt32((long)_dataReader["Strength"]),
                                     Convert.ToInt32((long)_dataReader["Defense"]), Convert.ToInt32((long)_dataReader["Luck"]),
