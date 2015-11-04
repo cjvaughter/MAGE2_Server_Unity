@@ -146,11 +146,14 @@ public static class Game
                 return;
             }
         }
+        else
+        {
+            p.Heartbeat = CurrentTime;
+        }
 
         switch ((MsgFunc)msg.Data[0])
         {
             case MsgFunc.Heartbeat:
-                p.Heartbeat = CurrentTime;
                 if(!p.Connected)
                 {
                     p.Connected = true;
@@ -192,7 +195,7 @@ public static class Game
             default:
                 Logger.Log(LogEvents.InvalidMessage);
                 break;
-        } 
+        }
     }
 
     private static void UpdateState()

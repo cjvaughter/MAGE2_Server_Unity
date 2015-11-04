@@ -23,6 +23,7 @@ public class Entity
     public string Name { get; set; }
     public TeamColor Team { get; set; }
     public EntityState State { get; set; }
+    //public Spell ActiveEffect { get; set; }
 }
 
 public class Player : Entity
