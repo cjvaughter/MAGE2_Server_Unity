@@ -5,6 +5,7 @@ using System.IO.Ports;
 
 public static class Coordinator
 {
+    public const ushort Broadcast = 0xFFFF;
     static Queue<MAGEMsg> Inbox = new Queue<MAGEMsg>();
     static Queue<MAGEMsg> Outbox = new Queue<MAGEMsg>();
     static SerialPort Serial = new SerialPort();
@@ -25,7 +26,7 @@ public static class Coordinator
 
         //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
-        //Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { 1, 0xCC, 0xCC, 0xEE, 0xEE }));
+        Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xCC, 0xCC, 0xEE, 0xEE }));
         //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
         StartThreads();
@@ -121,9 +122,17 @@ public static class Coordinator
     {
         return Inbox.Dequeue();
     }
+    public static void SendMessage(ulong address, params byte[] data)
+    {
+        Outbox.Enqueue(new MAGEMsg(address, data));
+    }
     public static void SendMessage(MAGEMsg msg)
     {
         Outbox.Enqueue(msg);
+    }
+    public static void UpdatePlayer(Player p)
+    {
+        Outbox.Enqueue(new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Update }));
     }
 
     public static string[] GetPorts()

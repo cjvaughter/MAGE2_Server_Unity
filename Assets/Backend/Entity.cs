@@ -12,8 +12,10 @@ public enum TeamColor : byte
 public enum EntityState : byte
 {
     Alive,
-    Dead,
+    Damaged,
     Stunned,
+    Healed,
+    Dead,
 }
 
 public class Entity
@@ -107,7 +109,7 @@ public class Player : Entity
     }
 
     private EntityState _state;
-    public new EntityState State { get { return _state; } set { _state = value; if(PanelStatus) PanelStatus.text = _state.ToString(); } }
+    public new EntityState State { get { return _state; } set { _state = value; if(PanelStatus) PanelStatus.text = (State == EntityState.Alive) ? "" : _state.ToString(); } }
 
     public SpellEffect ActiveEffect { get; set; }
 

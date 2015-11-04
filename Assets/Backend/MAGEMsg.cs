@@ -15,8 +15,10 @@ public enum MsgFunc
     Disconnect,
     Health,
     State,
-    ReceivedSpell,
-    SentSpell,
+    Effect,
+    Update,
+    Spell_RX,
+    Spell_TX,
 }
 
 public class MAGEMsg

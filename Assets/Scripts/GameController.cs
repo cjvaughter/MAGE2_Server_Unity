@@ -134,4 +134,26 @@ public class GameController : MonoBehaviour
     {
         return Game.Stop();
     }
+
+    public void Damage()
+    {
+        Player me = Players.Get(0x13A20040A994A1);
+        me.Health -= 5;
+        Coordinator.UpdatePlayer(me);
+    }
+
+    public void Stun()
+    {
+        Player me = Players.Get(0x13A20040A994A1);
+        me.State = EntityState.Stunned;
+        me.ActiveEffect = new SpellEffect(3000);
+        Coordinator.UpdatePlayer(me);
+    }
+
+    public void Heal()
+    {
+        Player me = Players.Get(0x13A20040A994A1);
+        me.Health += 5;
+        Coordinator.UpdatePlayer(me);
+    }
 }

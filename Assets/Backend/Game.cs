@@ -89,7 +89,7 @@ public static class Game
     {
         if (_running)
         {
-            Coordinator.SendMessage(new MAGEMsg(0xFFFF, new[] { (byte)MsgFunc.Disconnect }));
+            Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
 
             if (State == GameState.Complete)
                 Wrapup();
@@ -142,7 +142,7 @@ public static class Game
         {
             if ((MsgFunc)msg.Data[0] != MsgFunc.Connect)
             {
-                Coordinator.SendMessage(new MAGEMsg(msg.Address, new[] { (byte)MsgFunc.Disconnect }));
+                Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
                 return;
             }
         }
@@ -162,7 +162,7 @@ public static class Game
                 {
                     if ((p = Players.Add(msg)) != null)
                     {
-                        Coordinator.SendMessage(new MAGEMsg(msg.Address, new[] { (byte)MsgFunc.Connect, (byte)p.Team }));
+                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
                     }
                 }
                 else
@@ -172,20 +172,20 @@ public static class Game
                         p.Connected = true;
                         p.Heartbeat = CurrentTime;
                         Logger.Log(LogEvents.Reconnected, p);
-                        Coordinator.SendMessage(new MAGEMsg(msg.Address, new[] { (byte)MsgFunc.Connect, (byte)p.Team }));
+                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)p.Health, (byte)MsgFunc.Update);
                     }
                     else
                     {
                         Logger.Log(LogEvents.ConnectDuringGame);
-                        Coordinator.SendMessage(new MAGEMsg(msg.Address, new[] { (byte)MsgFunc.Disconnect }));
+                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Disconnect, (byte)MsgFunc.Update);
                     }
                 }
                 break;
-            case MsgFunc.SentSpell:
+            case MsgFunc.Spell_TX:
                 if (State != GameState.Active) break;
                 Spell.Add(p, msg.Data);
                 break;
-            case MsgFunc.ReceivedSpell:
+            case MsgFunc.Spell_RX:
                 if (State != GameState.Active) break;
                 Spell.Process(p, msg.Data);
                 break;
@@ -255,7 +255,7 @@ public static class Game
                         }
                         break;
                     case GameState.Active:
-                        Coordinator.SendMessage(new MAGEMsg(0xFFFF, new[] { (byte)MsgFunc.Health, (byte)0 }));
+                        Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
                         Players.ResetPlayers();
                         Logger.Log(LogEvents.RoundEnded, Round);
                         if (Round == Rounds)
@@ -286,7 +286,7 @@ public static class Game
                         _countdown = 5;
                         break;
                     case GameState.Ready:
-                        Coordinator.SendMessage(new MAGEMsg(0xFFFF, new[] { (byte)MsgFunc.Health, (byte)100 }));
+                        Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Alive, (byte)MsgFunc.Health, 100, (byte)MsgFunc.Update);
                         State = GameState.Active;
                         TimeRemaining = RoundLength;
                         Logger.Log(LogEvents.RoundBegan, Round);

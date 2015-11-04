@@ -104,7 +104,11 @@ public static class Spell
         float odds = ((float)caster.Strength / (caster.Strength + defender.Defense)) * MaxChance;
         odds += Chance.Next(caster.Luck);
         odds -= Chance.Next(defender.Luck);
+#if RELEASE
         bool success = odds >= Chance.Next(MaxChance);
+#elif DEBUG
+        bool success = true;
+#endif
 
         if (success)
         {
@@ -112,18 +116,16 @@ public static class Spell
             {
                 case SpellType.GenericDamage:
                     defender.Health -= 5;
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100) }));
                     break;
                 case SpellType.GenericStun:
                     defender.State = EntityState.Stunned;
                     defender.ActiveEffect = new SpellEffect(3000);
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.State, (byte)defender.State}));
                     break;
                 case SpellType.GenericHeal:
                     defender.Health += 5;
-                    Coordinator.SendMessage(new MAGEMsg(defender.Address, new[] { (byte)MsgFunc.Health, (byte)((float)defender.Health / defender.MaxHealth * 100) }));
                     break;
             }
+            Coordinator.UpdatePlayer(defender);
             caster.Hits++;
             Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
             //int strength = src.Strength * (float)(DamageMatrix[src.Device.Type, dst.Device.Type])/100;
