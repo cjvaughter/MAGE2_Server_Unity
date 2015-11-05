@@ -4,7 +4,7 @@ using System.Linq;
 
 public static class Players
 {
-    const long HeartbeatTimeout = TimeSpan.TicksPerSecond * 6;
+    const long HeartbeatTimeout = TimeSpan.TicksPerSecond * 15;
 
     public static List<Player> PlayerList = new List<Player>();
 
@@ -46,6 +46,7 @@ public static class Players
         {
             p.Connected = false;
             Logger.Log(LogEvents.LostConnection, p);
+            Logger.Log((Game.CurrentTime - p.Heartbeat).ToString());
         }
     }
 
