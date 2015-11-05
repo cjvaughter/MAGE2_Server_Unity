@@ -13,51 +13,70 @@ public interface IGameRules
     bool ConnectAnytime { get; }
     bool PlayersCanBeSaved { get; }
     bool OneHitKill { get; }
+    bool TeamBased { get; }
     Entity WhoWon { get; }
 }
 
 public class FreeForAll : IGameRules
 {
-    public bool CanStart {
+    public bool CanStart
+    {
         get { return (Game.PlayerCount == Players.Count); }
     }
-    public bool GameIsOver {
+    public bool GameIsOver
+    {
         get { return (Players.Remaining == 1); }
     }
     public bool ConnectAnytime
     {
         get { return false; }
     }
-    public bool PlayersCanBeSaved {
+    public bool PlayersCanBeSaved
+    {
         get { return false; }
     }
-    public bool OneHitKill {
+    public bool OneHitKill
+    {
         get { return false; }
     }
-    public Entity WhoWon {
+    public bool TeamBased
+    {
+        get { return false; }
+    }
+    public Entity WhoWon
+    {
         get { return Players.Survivor; }
     }
 }
 
 public class TeamBattle : IGameRules
 {
-    public bool CanStart {
+    public bool CanStart
+    {
         get { return (Game.PlayerCount == Players.Count && Teams.Count > 1); }
     }
-    public bool GameIsOver {
+    public bool GameIsOver
+    {
         get { return (Teams.Remaining == 1); }
     }
     public bool ConnectAnytime
     {
         get { return false; }
     }
-    public bool PlayersCanBeSaved {
+    public bool PlayersCanBeSaved
+    {
         get { return false; }
     }
-    public bool OneHitKill {
+    public bool OneHitKill
+    {
         get { return false; }
     }
-    public Entity WhoWon {
+    public bool TeamBased
+    {
+        get { return true; }
+    }
+    public Entity WhoWon
+    {
         get { return Teams.Survivor; }
     }
 }
@@ -81,6 +100,10 @@ public class TestMode : IGameRules
         get { return true; }
     }
     public bool OneHitKill
+    {
+        get { return false; }
+    }
+    public bool TeamBased
     {
         get { return false; }
     }

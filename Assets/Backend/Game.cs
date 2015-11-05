@@ -126,7 +126,7 @@ public static class Game
     {
         if (_running)
         {
-            Coordinator.Receive();
+            //Coordinator.Receive();
             CurrentTime = Now.TimeOfDay.Ticks;
             ProcessMessages();
             UpdateState();
@@ -155,10 +155,11 @@ public static class Game
         switch ((MsgFunc)msg.Data[0])
         {
             case MsgFunc.Heartbeat:
-                Logger.Log("Heartbeat");
                 if(!p.Connected)
                 {
                     p.Connected = true;
+                    Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team);
+                    Coordinator.UpdatePlayer(p);
                     Logger.Log(LogEvents.Reconnected, p);
                 }
                 break;

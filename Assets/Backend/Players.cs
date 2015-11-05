@@ -4,7 +4,7 @@ using System.Linq;
 
 public static class Players
 {
-    const long HeartbeatTimeout = TimeSpan.TicksPerSecond * 15;
+    const long HeartbeatTimeout = TimeSpan.TicksPerSecond * 6;
 
     public static List<Player> PlayerList = new List<Player>();
 
@@ -19,6 +19,10 @@ public static class Players
             p.Device = d;
             p.Address = msg.Address;
             p.Connected = true;
+            if (!Game.Rules.TeamBased)
+            {
+                p.Team = Colors.Red;
+            }
             p.CreatePanel();
             PlayerList.Add(p);
             Logger.Log(LogEvents.Connected, p);
@@ -46,7 +50,13 @@ public static class Players
         {
             p.Connected = false;
             Logger.Log(LogEvents.LostConnection, p);
-            Logger.Log((Game.CurrentTime - p.Heartbeat).ToString());
+        }
+
+        foreach (Player p in PlayerList.Where(p => !p.Connected && Game.CurrentTime - p.Heartbeat > HeartbeatTimeout))
+        {
+            p.Heartbeat = Game.CurrentTime;
+            Coordinator.SendMessage(p.Address, (byte)MsgFunc.Connect, (byte)p.Team);
+            Coordinator.UpdatePlayer(p);
         }
     }
 

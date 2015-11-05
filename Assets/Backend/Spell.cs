@@ -104,10 +104,10 @@ public static class Spell
         float odds = ((float)caster.Strength / (caster.Strength + defender.Defense)) * MaxChance;
         odds += Chance.Next(caster.Luck);
         odds -= Chance.Next(defender.Luck);
-#if RELEASE
-        bool success = odds >= Chance.Next(MaxChance);
-#elif DEBUG
+#if DEBUG
         bool success = true;
+#else
+        bool success = odds >= Chance.Next(MaxChance);
 #endif
 
         if (success)

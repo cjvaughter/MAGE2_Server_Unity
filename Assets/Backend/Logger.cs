@@ -39,11 +39,13 @@ public static class Logger
 
     const int Logwidth = 40;
     private static string _log = "";
+    private static int _lineCount = 0;
 
     public static void Initialize()
     {
         _log = "";
         LogPanel.text = "";
+        _lineCount = 0;
     }
 
     public static void Begin(GameType type, int players, int rounds, int milliseconds)
@@ -157,8 +159,14 @@ public static class Logger
         string log = now.ToString("[HH:mm:ss.fff] ") + data;
         if (newline) log = "\r\n" + log;
         _log += log;
+        if(_lineCount >= 100)
+        {
+            LogPanel.text = LogPanel.text.Substring(LogPanel.text.IndexOf("\r\n") + 2);
+            _lineCount--;
+        }
         LogPanel.text += log;
         LogScroll.verticalNormalizedPosition = 0;
+        _lineCount++;
     }
 
     public static void Save()

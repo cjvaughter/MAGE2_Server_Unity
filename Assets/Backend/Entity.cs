@@ -55,7 +55,7 @@ public class Player : Entity
         PanelStatus = Panel.transform.Find("Status").GetComponent<TextMesh>();
         PanelStatus.text = State.ToString();
         HealthBar = Panel.transform.Find("Health").GetComponent<HealthBehavior>();
-        if (Game.Type == GameType.TeamBattle)
+        if (Game.Rules.TeamBased)
             switch (Team)
             {
                 case Colors.Red:

@@ -30,7 +30,7 @@ public static class Coordinator
                                 //0x13A200409377D6
         //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
-        //StartThreads();
+        StartThreads();
     }
 
     private static void StartThreads()
@@ -54,7 +54,7 @@ public static class Coordinator
 
     public static void Stop()
     {
-        //StopThreads();
+        StopThreads();
         Serial.Close();
     }
 
@@ -144,20 +144,20 @@ public static class Coordinator
     public static void SendMessage(ulong address, params byte[] data)
     {
         Outbox.Enqueue(new MAGEMsg(address, data));
-        byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        Serial.Write(data2, 0, data2.Length);
+        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
+        //Serial.Write(data2, 0, data2.Length);
     }
     public static void SendMessage(MAGEMsg msg)
     {
         Outbox.Enqueue(msg);
-        byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        Serial.Write(data2, 0, data2.Length);
+        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
+        //Serial.Write(data2, 0, data2.Length);
     }
     public static void UpdatePlayer(Player p)
     {
         Outbox.Enqueue(new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Update }));
-        byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        Serial.Write(data2, 0, data2.Length);
+        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
+        //Serial.Write(data2, 0, data2.Length);
     }
 
     public static string[] GetPorts()
