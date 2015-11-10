@@ -26,7 +26,7 @@ public class ConfigController : MonoBehaviour
         FaderIn.SetActive(true);
     }
 
-    void Start ()
+    void Start()
     {
         LoadSettings();
 	}
