@@ -19,9 +19,9 @@ public class Thunder : MonoBehaviour
     
     IEnumerator Flash()
     {
-        yield return new WaitForSeconds(0.125f);
-        _lerping = true;
         yield return new WaitForSeconds(0.3f);
+        _lerping = true;
+        yield return new WaitForSeconds(0.4f);
         mr.material.SetColor("_Color", Color.white);
         //yield return null;
     }
