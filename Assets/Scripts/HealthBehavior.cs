@@ -2,13 +2,15 @@
 
 public class HealthBehavior : MonoBehaviour
 {
-    private float _health;
+    private float _health, xScale, xPos;
     private MeshRenderer _bar;
 
     public Material Green, Yellow, Red;
 
 	void Start()
     {
+        xScale = 3.0f;
+        xPos = 1.33f;
         _bar = GetComponent<MeshRenderer>();
         SetHealth(1.0f);
 	}
@@ -16,10 +18,8 @@ public class HealthBehavior : MonoBehaviour
 	public void SetHealth(float health)
     {
         _health = health;
-        float xScale = (_health * 3.0f);
-        float xPos = -0.17f + (_health * 1.5f);
-        transform.localScale = new Vector3(xScale, transform.localScale.y, transform.localScale.z);
-        transform.localPosition = new Vector3(xPos, transform.localPosition.y, transform.localPosition.z);
+        xScale = (_health * 3.0f);
+        xPos = -0.17f + (_health * 1.5f);
 
         if(_health >= 0.5f)
         {
@@ -38,5 +38,11 @@ public class HealthBehavior : MonoBehaviour
     public void SetHealth(float health, float maxhealth)
     {
         SetHealth(health / maxhealth);
+    }
+
+    void FixedUpdate()
+    {
+        transform.localScale = Vector3.Lerp(transform.localScale, new Vector3(xScale, transform.localScale.y, transform.localScale.z), 0.15f);
+        transform.localPosition = Vector3.Lerp(transform.localPosition, new Vector3(xPos, transform.localPosition.y, transform.localPosition.z), 0.15f);
     }
 }
