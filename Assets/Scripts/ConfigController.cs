@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Management;
 
 public class ConfigController : MonoBehaviour
 {
@@ -51,6 +52,7 @@ public class ConfigController : MonoBehaviour
         //Rounds
         Rounds.Value = Settings.Rounds;
 
+        /*
         //Port
         int count = 0;
         int selection = 0;
@@ -62,6 +64,7 @@ public class ConfigController : MonoBehaviour
         }
         port.value = -1;
         port.value = selection;
+        */
 
         //Players
         Players.Value = Settings.PlayerCount;
@@ -73,7 +76,8 @@ public class ConfigController : MonoBehaviour
         Settings.GameType = ((GameType)gameType.value).ToString().Expand();
         Settings.RoundLength = RoundLength.Value;
         Settings.Rounds = Rounds.Value;
-        Settings.Port = port.options[port.value].text;
+        //Settings.Port = port.options[port.value].text;
+        Settings.Port = Coordinator.GetPort();
         Settings.PlayerCount = Players.Value;
         Settings.Save();
         return true;

@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.IO.Ports;
 using System.Collections;
+using System.Diagnostics;
 
 public class GameController : MonoBehaviour
 {
@@ -38,7 +39,7 @@ public class GameController : MonoBehaviour
         }
         catch (Exception e)
         {
-            Logger.Log(e.Message);
+            Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
         }
     }
 
@@ -61,7 +62,8 @@ public class GameController : MonoBehaviour
         }
         catch(Exception e)
         {
-            Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
+            StackTrace trace = new StackTrace(e, true);
+            Logger.Log(e.Message + " in \"" + trace.GetFrame(0).GetFileName() + "\" at " + trace.GetFrame(0).GetFileLineNumber() + "\r\n");
         }
     }
 

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.IO.Ports;
+using System.Text.RegularExpressions;
+using Microsoft.Win32;
 
 public static class Coordinator
 {
@@ -160,8 +162,22 @@ public static class Coordinator
         //Serial.Write(data2, 0, data2.Length);
     }
 
-    public static string[] GetPorts()
+    public static string GetPort()
     {
-        return SerialPort.GetPortNames();
+        string pattern = string.Format("VID_{0}+PID_{1}+{2}", Constants.Coordinator_VID, Constants.Coordinator_PID, Constants.Coordinator_SN);
+        RegistryKey ftdi_key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\FTDIBUS");
+
+        foreach (string s in ftdi_key.GetSubKeyNames())
+        {
+            if (s.Contains(pattern))
+            {
+                string port = (string)ftdi_key.OpenSubKey(s).OpenSubKey("0000").OpenSubKey("Device Parameters").GetValue("PortName");
+                foreach(string p in SerialPort.GetPortNames())
+                {
+                    if (p == port) return port;
+                }
+            }
+        }
+        return null;
     }
 }

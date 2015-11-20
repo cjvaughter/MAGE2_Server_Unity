@@ -47,4 +47,12 @@ public static class Constants
     public const float YellowX = -3.5f;
     public const float GreenX = 3.5f;
     public const float BlueX = 10.5f;
+
+    public const ushort Coordinator_VID = 0x0403;
+    public const ushort Coordinator_PID = 0x6001;
+    public const string Coordinator_SN = "M2-COORD";
+
+    public const ushort PIU_VID = 0x0403;
+    public const ushort PIU_PID = 0x6015;
+    public const string PIU_SN = "M2-PIU";
 }
