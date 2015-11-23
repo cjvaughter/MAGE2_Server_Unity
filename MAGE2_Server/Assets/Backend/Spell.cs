@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using UnityEngine;
 
 public enum SpellType : byte
 {
@@ -60,6 +60,7 @@ public class Spell
     }
     public bool Overridable { get; protected set; }
 
+    public Colors Color { get; protected set; }
     public SpellEffect PrimaryEffect { get; protected set; }
     public int PrimaryValue { get; protected set; }
     public SpellEffect SecondaryEffect { get; protected set; }
@@ -93,6 +94,7 @@ public class Spell
         Caster = caster;
         ExpireTime = 1;
         Overridable = true;
+        Color = Colors.NoColor;
         PrimaryEffect = SpellEffect.None;
         PrimaryValue = 5;
         SecondaryEffect = SpellEffect.None;
@@ -113,7 +115,7 @@ public class Spell
     public const long SpellTimeout = TimeSpan.TicksPerSecond * 2;
     public const int MaxChance = 100;
     static List<IRPacket> SpellQueue = new List<IRPacket>();
-    static Random Chance = new Random();
+    static System.Random Chance = new System.Random();
 
     public static readonly int[,] DamageMatrix = new int[,]
     {
@@ -135,15 +137,17 @@ public class Spell
 
     public static void Add(Player caster, byte[] data)
     {
-        SpellQueue.Add(new IRPacket() { ID = caster.ID, Spell = (SpellType)data[1], Unique = data[2], Timestamp = Game.CurrentTime });
+        SpellQueue.Add(new IRPacket() { ID = caster.ID, Unique = data[1], Timestamp = Game.CurrentTime });
     }
 
     public static void Process(Player defender, byte[] data)
     {
-        IRPacket spell = SpellQueue.Find(packet => packet.ID == (data[1] << 8 | data[2]) && packet.Spell == (SpellType)data[3] && packet.Unique == data[4]);
-        if (spell != null)
+        IRPacket spell = new IRPacket() { ID = (ushort)(data[1] << 8 | data[2]), Spell = (SpellType)data[3], Strength = data[4], Unique = data[5] };
+
+        IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID && packet.Unique == spell.ID);
+        if (queuedSpell != null)
         {
-            SpellQueue.Remove(spell);
+            SpellQueue.Remove(queuedSpell);
             if (defender.ActiveEffect == null)
                 DetermineSuccess(defender, spell);
             else if (defender.ActiveEffect.Overridable)
@@ -161,33 +165,25 @@ public class Spell
         }
     }
 
-    /// <summary>
-    /// Calculates odds of success, carries out spell effect,
-    /// awards XP, and increments hits or misses.
-    /// </summary>
-    /// <param name="defender">The receiving player</param>
-    /// <param name="packet">The received packet</param>
-    /// <returns>Whether the spell was successful or not.</returns>
-    public static void DetermineSuccess(Player defender, IRPacket packet)
+    public static void DetermineSuccess(Player defender, IRPacket packet, bool forceSuccess = false)
     {
         Player caster = Players.Get(packet.ID);
 
-#if DEBUG
-        bool success = true;
-#else
         float odds = ((float)caster.Strength / (caster.Strength + defender.Defense)) * MaxChance;
         odds += Chance.Next(caster.Luck);
         odds -= Chance.Next(defender.Luck);
         bool success = odds >= Chance.Next(MaxChance);
-#endif
 
-        if (success)
+        if (success || forceSuccess)
         {
+            caster.Hits++;
+            caster.XP += 10;
             Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
 
             defender.ActiveEffect = Activator.CreateInstance(Type.GetType(packet.Spell.ToString()), caster) as Spell;
-            defender.ActiveEffect.Multiplier = 2;
-
+            int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
+            defender.ActiveEffect.Multiplier = (packet.Strength/100.0f) * (caster.Strength/100.0f*caster.Level) * (DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type]/100.0f);
+            
             switch(defender.ActiveEffect.PrimaryEffect)
             {
                 case SpellEffect.Damage:
@@ -217,8 +213,6 @@ public class Spell
             defender.Luck += defender.ActiveEffect.LuckModifier;
 
             Coordinator.UpdatePlayer(defender);
-            caster.Hits++;
-            //int strength = src.Strength * (float)(DamageMatrix[src.Device.Type, dst.Device.Type])/100;
         }
         else
         {

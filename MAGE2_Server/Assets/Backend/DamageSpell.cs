@@ -34,6 +34,7 @@ public class Thunder : Damage
         SecondaryEffect = SpellEffect.Stun;
         SecondaryValue = 5;
 
+        Color = Colors.White;
         TemporaryComplete = false;
         TemporaryLength = 30;
         StrengthModifier = -15;
@@ -50,6 +51,7 @@ public class Poison : Damage
         SecondaryEffect = SpellEffect.Repeat;
         SecondaryValue = 30;
 
+        Color = Colors.Purple;
         StrengthModifier = -10;
         DefenseModifier = -10;
         LuckModifier = -10;

@@ -40,6 +40,7 @@ public class ConfigController : MonoBehaviour
 
     void Awake()
     {
+        Application.runInBackground = true;
         FaderFromSplash.SetActive(true);
         checkforupdates = true;
     }
@@ -149,6 +150,18 @@ public class ConfigController : MonoBehaviour
     public void Exit()
     {
         FaderOut.GetComponent<FadeOut>().Scene = "Exit";
+        FaderOut.SetActive(true);
+    }
+
+    public void Database()
+    {
+        FaderOut.GetComponent<FadeOut>().Scene = "Database";
+        FaderOut.SetActive(true);
+    }
+
+    public void DFU()
+    {
+        FaderOut.GetComponent<FadeOut>().Scene = "DFU";
         FaderOut.SetActive(true);
     }
 

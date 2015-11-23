@@ -75,31 +75,36 @@ public static class Players
             if (p.Health == 0)
             {
                 p.KillEffect();
+                Coordinator.UpdatePlayer(p);
             }
             else if (p.ActiveEffect.SecondaryEffect == SpellEffect.Repeat && p.ActiveEffect.RepeatCount < p.ActiveEffect.SecondaryValue)
             {
                 p.ActiveEffect.RepeatCount++;
-                p.State = EntityState.Damaged;
                 p.Health -= p.ActiveEffect.PrimaryValue;
                 p.ActiveEffect.ExpireTime = 1;
+                if (p.Health > 0)
+                {
+                    p.State = EntityState.Alive;
+                    Coordinator.SendMessage(p.Address, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Update);
+                    //Coordinator.UpdatePlayer(p);
+                }
+                else
+                {
+                    p.KillEffect();
+                    Coordinator.UpdatePlayer(p);
+                }
             }
             else if(!p.ActiveEffect.TemporaryComplete)
             {
-                p.State = EntityState.Alive;
                 p.ActiveEffect.ExpireTime = p.ActiveEffect.TemporaryLength;
                 p.ActiveEffect.TemporaryComplete = true;
             }
             else
             {
                 p.KillEffect();
-                p.State = EntityState.Alive;
+                if (p.Health > 0) p.State = EntityState.Alive;
+                Coordinator.UpdatePlayer(p);
             }
-
-            if (p.Health == 0)
-            {
-                p.KillEffect();
-            }
-            Coordinator.SendMessage(p.Address, (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Update);
         }
     }
 

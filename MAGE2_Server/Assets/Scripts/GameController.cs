@@ -36,7 +36,7 @@ public class GameController : MonoBehaviour
         else if (SelectedPlayer == player)
         {
             SelectedPlayer = null;
-            Camera.main.GetComponent<CameraMovement>().SetPosition(_lastCameraPos, false);
+            Camera.main.GetComponent<CameraMovement>().SetPosition(_lastCameraPos);
             Camera.main.GetComponent<CameraMovement>().SetZoom(0);
             infoPanel.SetPlayer(null);
         }

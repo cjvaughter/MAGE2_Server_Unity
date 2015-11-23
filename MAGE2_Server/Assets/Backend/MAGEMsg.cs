@@ -4,6 +4,7 @@ public class IRPacket
 {
     public ushort ID;
     public SpellType Spell;
+    public byte Strength;
     public byte Unique;
     public long Timestamp;
 }

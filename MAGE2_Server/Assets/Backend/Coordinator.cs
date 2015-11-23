@@ -28,7 +28,7 @@ public static class Coordinator
 
         //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
         //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
-        Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xCC, 0xCC, 0xEE, 0xEE }));
+        //Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xCC, 0xCC, 0xEE, 0xEE }));
                                 //0x13A200409377D6
         //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
@@ -146,20 +146,23 @@ public static class Coordinator
     public static void SendMessage(ulong address, params byte[] data)
     {
         Outbox.Enqueue(new MAGEMsg(address, data));
-        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        //Serial.Write(data2, 0, data2.Length);
     }
     public static void SendMessage(MAGEMsg msg)
     {
         Outbox.Enqueue(msg);
-        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        //Serial.Write(data2, 0, data2.Length);
     }
     public static void UpdatePlayer(Player p)
     {
-        Outbox.Enqueue(new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Update }));
-        //byte[] data2 = MAGEMsg.Encode(Outbox.Dequeue());
-        //Serial.Write(data2, 0, data2.Length);
+        MAGEMsg msg;
+        if(p.ActiveEffect != null)
+            msg = new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Effect, (byte)p.ActiveEffect.Color, (byte)MsgFunc.Update });
+        else
+            msg = new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update });
+        Outbox.Enqueue(msg);
+    }
+    public static void UpdatePlayerHealth(Player p)
+    {
+        Outbox.Enqueue(new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Update }));
     }
 
     public static string GetPort()

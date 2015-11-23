@@ -166,7 +166,7 @@ public static class Game
                 {
                     if ((p = Players.Add(msg)) != null)
                     {
-                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
+                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Health, 0, (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update);
                     }
                 }
                 else
@@ -176,7 +176,8 @@ public static class Game
                         p.Connected = true;
                         p.Heartbeat = CurrentTime;
                         Logger.Log(LogEvents.Reconnected, p);
-                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Health, (byte)p.Health, (byte)MsgFunc.Update);
+                        Coordinator.SendMessage((byte)MsgFunc.Connect, (byte)p.Team);
+                        Coordinator.UpdatePlayer(p);
                     }
                     else
                     {
@@ -186,11 +187,11 @@ public static class Game
                 }
                 break;
             case MsgFunc.Spell_TX:
-                if (State != GameState.Active) break;
+                //if (State != GameState.Active) break;
                 Spell.Add(p, msg.Data);
                 break;
             case MsgFunc.Spell_RX:
-                if (State != GameState.Active) break;
+                //if (State != GameState.Active) break;
                 Spell.Process(p, msg.Data);
                 break;
             default:
@@ -290,7 +291,7 @@ public static class Game
                         _countdown = 5;
                         break;
                     case GameState.Ready:
-                        Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Alive, (byte)MsgFunc.Health, 100, (byte)MsgFunc.Update);
+                        Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Alive, (byte)MsgFunc.Health, 100, (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update);
                         State = GameState.Active;
                         TimeRemaining = RoundLength;
                         Logger.Log(LogEvents.RoundBegan, Round);
