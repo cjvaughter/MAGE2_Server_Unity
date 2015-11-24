@@ -144,14 +144,14 @@ public class Spell
     {
         IRPacket spell = new IRPacket() { ID = (ushort)(data[1] << 8 | data[2]), Spell = (SpellType)data[3], Strength = data[4], Unique = data[5] };
 
-        IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID && packet.Unique == spell.ID);
+        IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID /*&& packet.Unique == spell.ID*/);
         if (queuedSpell != null)
         {
             SpellQueue.Remove(queuedSpell);
             if (defender.ActiveEffect == null)
-                DetermineSuccess(defender, spell);
+                DetermineSuccess(defender, spell, true);
             else if (defender.ActiveEffect.Overridable)
-                DetermineSuccess(defender, spell);
+                DetermineSuccess(defender, spell, true);
         }
     }
 
@@ -181,8 +181,9 @@ public class Spell
             Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
 
             defender.ActiveEffect = Activator.CreateInstance(Type.GetType(packet.Spell.ToString()), caster) as Spell;
-            int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
-            defender.ActiveEffect.Multiplier = (packet.Strength/100.0f) * (caster.Strength/100.0f*caster.Level) * (DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type]/100.0f);
+            //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
+            //defender.ActiveEffect.Multiplier = (packet.Strength/100.0f) * (caster.Strength/100.0f*caster.Level) * (DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type]/100.0f);
+            defender.ActiveEffect.Multiplier = 1.5f;
             
             switch(defender.ActiveEffect.PrimaryEffect)
             {

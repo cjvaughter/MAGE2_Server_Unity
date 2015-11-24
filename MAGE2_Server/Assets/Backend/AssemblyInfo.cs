@@ -4,4 +4,4 @@
 [assembly: AssemblyDescription("Mobile Active Gaming Environment 2")]
 [assembly: AssemblyCompany("OSU ECE Department")]
 [assembly: AssemblyCopyright("Copyright © 2015 Oklahoma State University")]
-[assembly: AssemblyVersion("0.5.1.1")]
+[assembly: AssemblyVersion("0.6.0.0")]
