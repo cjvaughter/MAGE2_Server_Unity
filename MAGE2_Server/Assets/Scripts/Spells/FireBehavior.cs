@@ -9,7 +9,7 @@ public class FireBehavior : MonoBehaviour, IKillable
     public ParticleSystem Glow;
     public ParticleSystem Sparks;
     public AudioSource FireSound;
-    private float targetVolume = 0.2f;
+    private float _targetVolume = 0.2f;
 
     public void Kill()
     {
@@ -18,7 +18,7 @@ public class FireBehavior : MonoBehaviour, IKillable
 
     void FixedUpdate()
     {
-        FireSound.volume = Mathf.Lerp(FireSound.volume, targetVolume, 0.1f);
+        FireSound.volume = Mathf.Lerp(FireSound.volume, _targetVolume, 0.1f);
     }
 
     IEnumerator StopEmitting()
@@ -28,7 +28,7 @@ public class FireBehavior : MonoBehaviour, IKillable
         Smoke.enableEmission = false;
         Glow.enableEmission = false;
         Sparks.enableEmission = false;
-        targetVolume = 0;
+        _targetVolume = 0;
         yield return new WaitForSeconds(2.0f);
         Destroy(gameObject);
     }

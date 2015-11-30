@@ -39,7 +39,7 @@ public class UpDown : Selectable
         }
         else
         {
-            text.text = "    " + Value.ToString();
+            text.text = "    " + Value;
         }
     }
 }

@@ -2,36 +2,36 @@
 
 public class GlowBehavior : MonoBehaviour
 {
-    MeshRenderer mr;
-    float val;
+    MeshRenderer _mr;
+    float _val;
     bool _upDown;
 
 	void Start()
     {
-        val = 0;
-        mr = GetComponent<MeshRenderer>();
+        _val = 0;
+        _mr = GetComponent<MeshRenderer>();
 	}
 	
 	void FixedUpdate()
     {
         if (_upDown)
         {
-            val = Mathf.Lerp(val, 0.0f, 0.15f);
-            if (val < 0.1f)
+            _val = Mathf.Lerp(_val, 0.0f, 0.15f);
+            if (_val < 0.1f)
             {
                 _upDown = false;
-                val = 0;
+                _val = 0;
             }
         }
         else
         {
-            val = Mathf.Lerp(val, 0.75f, 0.15f);
-            if (val > 0.7f)
+            _val = Mathf.Lerp(_val, 0.75f, 0.15f);
+            if (_val > 0.7f)
             {
                 _upDown = true;
-                val = 0.75f;
+                _val = 0.75f;
             }
         }
-        mr.material.SetFloat("_MKGlowPower", val);
+        _mr.material.SetFloat("_MKGlowPower", _val);
     }
 }

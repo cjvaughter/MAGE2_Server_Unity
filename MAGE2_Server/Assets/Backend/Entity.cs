@@ -1,6 +1,4 @@
-﻿using System;
-using UnityEngine;
-using UnityEngine.UI;
+﻿using UnityEngine;
 
 public enum TeamColor : byte
 {
@@ -56,42 +54,15 @@ public class Player : Entity
 
     public void CreatePanel()
     {
-        Panel = GameObject.Instantiate(Resources.Load("Prefabs/PlayerPanel")) as GameObject;
-        Panel.GetComponent<PanelBehavior>().ID = ID;
-        Panel.transform.Find("Name").GetComponent<TextMesh>().text = Name;
-        Panel.transform.Find("Player").GetComponent<MeshRenderer>().material.mainTexture = Picture;
-        Panel.transform.Find("Device").GetComponent<MeshRenderer>().material.mainTexture = Device.Picture;
-        PanelStatus = Panel.transform.Find("Status").GetComponent<TextMesh>();
-        PanelStatus.text = "";
-        HealthBar = Panel.transform.Find("Health").GetComponent<HealthBehavior>();
-        if (Game.Rules.TeamBased)
-            switch (Team)
-            {
-                case Colors.Red:
-                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Red") as Material;
-                    break;
-                case Colors.Yellow:
-                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Yellow") as Material;
-                    Panel.transform.Find("Name").GetComponent<TextMesh>().color = Color.black;
-                    PanelStatus.color = Color.black;
-                    break;
-                case Colors.Green:
-                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Green") as Material;
-                    break;
-                case Colors.Blue:
-                    Panel.transform.Find("Back").GetComponent<MeshRenderer>().material = Resources.Load("Materials/Blue") as Material;
-                    break;
-            }
+        GameObject playerPanel = GameObject.Instantiate(Resources.Load("Prefabs/PlayerPanel")) as GameObject;
+        Panel = playerPanel.GetComponent<PanelBehavior>();
+        Panel.SetPlayer(this);
     }
+
+    public PanelBehavior Panel { get; private set; }
 
     public ushort ID { get; private set; }
     public Texture2D Picture { get; private set; }
-
-    private GameObject Panel;
-    private TextMesh PanelStatus;
-    private HealthBehavior HealthBar;
-    private GameObject BorderGlow;
-    private GameObject SpellObject;
 
     public int Level { get; set; }
     public int LevelsPending { get; set; }
@@ -121,10 +92,16 @@ public class Player : Entity
         set
         {
             if (value <= 0) { _health = 0; State = EntityState.Dead; }
-            else { _health = value; if (_health > MaxHealth) _health = MaxHealth; }
-            if (HealthBar) HealthBar.SetHealth(_health, MaxHealth);
+            else
+            {
+                _health = value;
+                if (_health > MaxHealth)
+                    _health = MaxHealth;
+            }
         }
     }
+    public float HealthPercent { get { return (Health * 100.0f / MaxHealth); } }
+    public byte HealthNormalized { get { return (byte)(Health * 255.0f / MaxHealth); } }
 
     private EntityState _state;
     public new EntityState State
@@ -134,16 +111,17 @@ public class Player : Entity
         {
             if (_state == value) return;
             _state = value;
-            if (PanelStatus)
-                PanelStatus.text = (State == EntityState.Alive) ? "" : _state.ToString();
-            if (_state == EntityState.Alive || _state == EntityState.Dead && BorderGlow)
-            {
-                GameObject.Destroy(BorderGlow);
-            }
+
+            if (_health == 0) _state = EntityState.Dead;
+
             if(_state == EntityState.Dead)
             {
                 Deaths++;
-                if(ActiveEffect != null) ActiveEffect.Caster.Kills++;
+                if (ActiveEffect != null)
+                {
+                    ActiveEffect.Caster.Kills++;
+                    KillEffect();
+                }
                 Logger.Log(LogEvents.Died, this);
             }
         }
@@ -157,48 +135,20 @@ public class Player : Entity
         {
             if (_activeEffect != null)
             {
-                KillEffect();
                 State = EntityState.Alive;
             }
-
             _activeEffect = value;
-            if(_activeEffect != null)
-            {
-                switch(_activeEffect.PrimaryEffect)
-                {
-                    case SpellEffect.Damage:
-                        BorderGlow = GameObject.Instantiate(Resources.Load("Prefabs/RedGlow")) as GameObject;
-                        break;
-                    case SpellEffect.Stun:
-                        BorderGlow = GameObject.Instantiate(Resources.Load("Prefabs/BlueGlow")) as GameObject;
-                        break;
-                    case SpellEffect.Heal:
-                        BorderGlow = GameObject.Instantiate(Resources.Load("Prefabs/GreenGlow")) as GameObject;
-                        break;
-                }
-                BorderGlow.transform.position += Panel.transform.position;
-                BorderGlow.transform.parent = Panel.transform;
-
-                try
-                {
-                    SpellObject = GameObject.Instantiate(Resources.Load("Prefabs/Spells/" + _activeEffect.GetType().ToString())) as GameObject;
-                    SpellObject.transform.position += Panel.transform.position;
-                    SpellObject.transform.parent = Panel.transform;
-                }
-                catch (Exception) { }
-            }
         }
     }
     public void KillEffect()
     {
         _activeEffect = null;
-        if (SpellObject) SpellObject.GetComponent<IKillable>().Kill();
-        KillBorder();
+        Panel.KillEffect();
     }
 
     public void KillBorder()
     {
-        if (BorderGlow) GameObject.Destroy(BorderGlow);
+        Panel.KillBorder();
     }
 
     public ulong Address { get; set; }
@@ -210,5 +160,10 @@ public class Player : Entity
 
 public class Team : Entity
 {
-
+    public Team(Colors c)
+    {
+        Name = c.ToString() + " Team";
+        Team = c;
+        State = EntityState.Alive;
+    }
 }

@@ -23,8 +23,9 @@ public static class Players
             {
                 p.Team = Colors.Red;
             }
-            p.CreatePanel();
             PlayerList.Add(p);
+            Teams.Add(p.Team);
+            p.CreatePanel();
             Logger.Log(LogEvents.Connected, p);
             return p;
         }
@@ -41,8 +42,8 @@ public static class Players
     public static Player Get(ulong address) { return PlayerList.Find(p => p.Address == address); }
     public static void Clear() { PlayerList.Clear(); }
     public static int Count { get { return PlayerList.FindAll(p => p.GetType() == typeof(Player)).Count; } }
-    public static int Remaining { get { return PlayerList.Count(p => p.State == EntityState.Alive); } }
-    public static Player Survivor { get { return Remaining == 1 ? PlayerList.FirstOrDefault(p => p.State == EntityState.Alive) : null; } }
+    public static int Remaining { get { return PlayerList.Count(p => p.State != EntityState.Dead); } }
+    public static Player Survivor { get { return Remaining == 1 ? PlayerList.FirstOrDefault(p => p.State != EntityState.Dead) : null; } }
 
     public static void VerifyHeartbeats()
     {
@@ -72,6 +73,7 @@ public static class Players
     {
         foreach (Player p in PlayerList.Where(p => p.ActiveEffect != null && Game.CurrentTime >= p.ActiveEffect.ExpireTime))
         {
+            if(p.State != EntityState.Stunned) p.State = EntityState.Alive;
             if (p.Health == 0)
             {
                 p.KillEffect();
@@ -81,9 +83,9 @@ public static class Players
             {
                 p.ActiveEffect.RepeatCount++;
                 p.Health -= p.ActiveEffect.PrimaryValue;
-                p.ActiveEffect.ExpireTime = 1;
                 if (p.Health > 0)
                 {
+                    p.ActiveEffect.ExpireTime = 1;
                     p.State = EntityState.Alive;
                     Coordinator.SendMessage(p.Address, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Update);
                     //Coordinator.UpdatePlayer(p);
@@ -112,8 +114,8 @@ public static class Players
     {
         foreach (Player p in PlayerList)
         {
-            p.State = EntityState.Alive;
             p.Health = p.MaxHealth;
+            p.State = EntityState.Alive;
             p.Restore();
             p.KillEffect();
         }

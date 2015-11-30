@@ -1,32 +1,24 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class DimButtonOnDisable : MonoBehaviour
 {
-    Button button;
-    Image image;
-    bool interactable = true;
+    Button _button;
+    Image _image;
+    bool _interactable = true;
 
 	void Start ()
     {
-        button = GetComponent<Button>();
-        image = gameObject.transform.GetChild(0).GetComponent<Image>();
+        _button = GetComponent<Button>();
+        _image = gameObject.transform.GetChild(0).GetComponent<Image>();
     }
 
 	void Update()
     {
-	    if(button.interactable != interactable)
-        {
-            interactable = button.interactable;
-            if(interactable)
-            {
-                image.color = Color.white;
-            }
-            else
-            {
-                image.color = Color.gray;
-            }
-        }
-	}
+	    if(_button.interactable != _interactable)
+	    {
+	        _interactable = _button.interactable;
+	        _image.color = _interactable ? Color.white : Color.gray;
+	    }
+    }
 }

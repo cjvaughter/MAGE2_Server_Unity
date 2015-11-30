@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using System.Collections;
 
 public class InfoPanelBehavior : MonoBehaviour
 {
@@ -9,41 +8,38 @@ public class InfoPanelBehavior : MonoBehaviour
     public Text HMText, HMValues;
     public Text KDText, KDValues;
 
-    private string lv = "", av = "", hv = "", kv = "";
-    private Player player;
+    private string _lv = "", _av = "", _hv = "", _kv = "";
+    private Player _player;
 
     void Update()
     {
-        LevelValues.text = lv;
-        AttribValues.text = av;
-        HMValues.text = hv;
-        KDValues.text = kv;
-    }
-
-    public void UpdateInfo()
-    {
-        if (player != null)
+        if (_player != null)
         {
-            lv = player.Level + "\n\n" + player.XP;
-            av = player.Strength + "\n" + player.Defense + "\n" + player.Luck;   
-            hv = player.Hits + "\n" + player.Misses + "\n" + player.HM.ToString("0.000");
-            kv = player.Kills + "\n" + player.Deaths + "\n" + player.KD.ToString("0.000");
+            _lv = _player.Level + "\n\n" + _player.XP;
+            _av = _player.Strength + "\n" + _player.Defense + "\n" + _player.Luck;
+            _hv = _player.Hits + "\n" + _player.Misses + "\n" + _player.HM.ToString("0.000");
+            _kv = _player.Kills + "\n" + _player.Deaths + "\n" + _player.KD.ToString("0.000");
         }
+
+        LevelValues.text = _lv;
+        AttribValues.text = _av;
+        HMValues.text = _hv;
+        KDValues.text = _kv;
     }
 
     public void SetPlayer(Player p)
     {
-        player = p;
-        if(player == null)
+        _player = p;
+        if(_player == null)
         {
             LevelText.color = Color.gray;
-            lv = "";
+            _lv = "";
             AttribText.color = Color.gray;
-            av = "";
+            _av = "";
             HMText.color = Color.gray;
-            hv = "";
+            _hv = "";
             KDText.color = Color.gray;
-            kv = "";
+            _kv = "";
         }
         else
         {

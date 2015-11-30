@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using UnityEngine.UI;
 
@@ -165,7 +164,8 @@ public static class Logger
             _lineCount--;
         }
         LogPanel.text += log;
-        LogScroll.verticalNormalizedPosition = 0;
+        //LogScroll.verticalNormalizedPosition = 0;
+        LogScroll.verticalScrollbar.value = 0;
         _lineCount++;
     }
 

@@ -1,8 +1,6 @@
-﻿using UnityEngine.UI;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
+using UnityEngine.UI;
 
 public class ConsoleWriter : TextWriter
 {

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class CameraMovement : MonoBehaviour
 {
-    public Camera mainCamera;
+    public Camera MainCamera;
     public float ScrollSpeed = 8;
     public int PlayerRows = 3;
 
@@ -36,7 +35,7 @@ public class CameraMovement : MonoBehaviour
             _pos.y = -1.5f;
         }
 
-        mainCamera.orthographicSize = _defaultZoom;
+        MainCamera.orthographicSize = _defaultZoom;
         _zoom = _defaultZoom;
         _pos.z = -10;
         transform.position = _pos;
@@ -52,10 +51,10 @@ public class CameraMovement : MonoBehaviour
         }
         */
         _zoom = Mathf.Clamp(_zoom, _zoomIn, _defaultZoom);
-        mainCamera.orthographicSize = Mathf.Lerp(mainCamera.orthographicSize, _zoom, 0.10f);
-        if(Mathf.Abs(mainCamera.orthographicSize - _zoom) < 0.05f)
+        MainCamera.orthographicSize = Mathf.Lerp(MainCamera.orthographicSize, _zoom, 0.10f);
+        if(Mathf.Abs(MainCamera.orthographicSize - _zoom) < 0.05f)
         {
-            mainCamera.orthographicSize = _zoom;
+            MainCamera.orthographicSize = _zoom;
         }
 
         //Pan
@@ -71,6 +70,12 @@ public class CameraMovement : MonoBehaviour
     {
         _pos = pos;
         _pos.z = -10;
-        if (clamped) _pos.y = Mathf.Clamp(_pos.y, (float)-3.5 * (PlayerRows - 3), 0);
+        if (clamped)
+            _pos.y = Mathf.Clamp(_pos.y, (float)-3.5 * (PlayerRows - 3), 0);
+    }
+
+    public void SetRows(int num)
+    {
+        if(num > 3) PlayerRows = num;
     }
 }

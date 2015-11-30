@@ -29,10 +29,6 @@ public class MAGEMsg
     public const byte TX_Header = 0x0E;
     public const byte RX = 0x90;
     public const byte RX_Header = 0x0C;
-    public const byte Escape = 0x7D;
-    public const byte XON = 0x11;
-    public const byte XOFF = 0x13;
-    public const byte XOR = 0x20;
     public const byte Check = 0xFF;
     public const byte DefaultAddress16High = 0xFF;
     public const byte DefaultAddress16Low = 0xFE;
@@ -60,7 +56,6 @@ public class MAGEMsg
     private static ulong _address;
     private static byte[] _data;
     private static byte _checksum;
-    private static bool _escape;
     private static byte _sum;
     private static byte _index;
 
@@ -72,23 +67,12 @@ public class MAGEMsg
         _address = 0;
         _data = null;
         _checksum = 0;
-        _escape = false;
         _sum = 0;
         _index = 0;
     }
 
     public static void Decode(byte data)
     {
-        if (data == Escape)
-        {
-            _escape = true;
-            return;
-        }
-        if (_escape)
-        {
-            data ^= XOR;
-            _escape = false;
-        }
         switch (_step)
         {
             case 0:
@@ -213,15 +197,6 @@ public class MAGEMsg
 
         for (int i = 3; i < data.Count; i++) sum += data[i];
         data.Add((byte)(Check - sum));
-
-        for (int i = 3; i < data.Count - 1; i++)
-        {
-            if (data[i] == Delimiter || data[i] == Escape || data[i] == XON || data[i] == XOFF)
-            {
-                data[i] ^= XOR;
-                data.Insert(i, Escape);
-            }
-        }
 
         return data.ToArray();
     }

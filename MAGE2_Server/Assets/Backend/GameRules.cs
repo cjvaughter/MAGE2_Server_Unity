@@ -4,6 +4,7 @@ public enum GameType : byte
     FreeForAll,
     TeamBattle,
     TestMode,
+    Legacy,
 }
 
 public interface IGameRules

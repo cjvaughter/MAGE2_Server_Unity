@@ -3,7 +3,7 @@ using System.Collections;
 
 public class ThunderBehavior : MonoBehaviour, IKillable
 {
-    public MeshRenderer mr;
+    public MeshRenderer Mr;
     public AudioSource ThunderSound, ElectricSound;
     public GameObject Top, Left, Right, Bottom;
     bool _lerping;
@@ -11,7 +11,7 @@ public class ThunderBehavior : MonoBehaviour, IKillable
 	void Update()
     {
         if(_lerping)
-            mr.material.SetColor("_Color", Color.Lerp(mr.material.GetColor("_Color"), Color.clear, 0.15f));
+            Mr.material.SetColor("_Color", Color.Lerp(Mr.material.GetColor("_Color"), Color.clear, 0.15f));
 	}
     
     IEnumerator Flash()
@@ -19,13 +19,13 @@ public class ThunderBehavior : MonoBehaviour, IKillable
         yield return new WaitForSeconds(0.3f);
         _lerping = true;
         yield return new WaitForSeconds(0.4f);
-        mr.material.SetColor("_Color", Color.white);
+        Mr.material.SetColor("_Color", Color.white);
     }
     
     void OnEnable()
     {
        _lerping = false;
-        mr.material.SetColor("_Color", Color.white);
+        Mr.material.SetColor("_Color", Color.white);
         StartCoroutine("Flash");
     }
 

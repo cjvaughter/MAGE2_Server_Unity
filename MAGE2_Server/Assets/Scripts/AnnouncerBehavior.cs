@@ -18,22 +18,23 @@ public enum Phrase
     Round3,
     Round4,
     FinalRound,
+    Finished,
 }
 
 public class AnnouncerBehavior : MonoBehaviour
 {
     public Sprite Five, Four, Three, Two, One, Go, Time, Ready,
-                  Game, Round1, Round2, Round3, Round4, FinalRound;
+                  Game, Round1, Round2, Round3, Round4, FinalRound, Finished;
 
     public AudioClip FiveAudio, FourAudio, ThreeAudio, TwoAudio, OneAudio,
                      GoAudio, TimeAudio, ReadyAudio, GameAudio, FreeForAllAudio,
                      TeamBattleAudio, Round1Audio, Round2Audio, Round3Audio,
-                     Round4Audio, FinalRoundAudio;
+                     Round4Audio, FinalRoundAudio, FinishedAudio;
 
     public SpriteRenderer Renderer;
     public AudioSource Audio;
 
-    private Vector3 fullSize = new Vector3(50, 50, 1);
+    private Vector3 _fullSize = new Vector3(50, 50, 1);
     private bool _lerping, _fading;
 
     public void Speak(Phrase phrase)
@@ -106,6 +107,10 @@ public class AnnouncerBehavior : MonoBehaviour
                 Renderer.sprite = FinalRound;
                 Audio.clip = FinalRoundAudio;
                 break;
+            case Phrase.Finished:
+                Renderer.sprite = Finished;
+                Audio.clip = FinishedAudio;
+                break;
             default:
                 Renderer.sprite = null;
                 Audio.clip = null;
@@ -137,11 +142,11 @@ public class AnnouncerBehavior : MonoBehaviour
         Vector3 delta = new Vector3();
         if (_lerping)
         {
-            transform.localScale = Vector3.Lerp(transform.localScale, fullSize, 0.10f);
-            delta = transform.localScale - fullSize;
+            transform.localScale = Vector3.Lerp(transform.localScale, _fullSize, 0.10f);
+            delta = transform.localScale - _fullSize;
             if (delta.x < 0.01 && delta.y < 0.01)
             {
-                transform.localScale = fullSize;
+                transform.localScale = _fullSize;
                 _lerping = false;
             }
         }

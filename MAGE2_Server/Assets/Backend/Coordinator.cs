@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.IO.Ports;
-using System.Text.RegularExpressions;
+using System.Linq;
+using System.Threading;
 using Microsoft.Win32;
 
 public static class Coordinator
@@ -19,18 +19,21 @@ public static class Coordinator
     public static void Start()
     {
         Serial.PortName = Settings.Port;
-        Serial.BaudRate = Settings.BaudRate;
+        Serial.BaudRate = 38400;
         Serial.Parity = Parity.None;
         Serial.DataBits = 8;
         Serial.StopBits = StopBits.One;
         Serial.ReadTimeout = 500;
         Serial.Open();
 
-        //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x33, 0x33, 0xCC, 0xCC }));
-        //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x44, 0x44, 0xDD, 0xDD }));
-        //Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xCC, 0xCC, 0xEE, 0xEE }));
+        Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x11, 0x11, 0x11, 0x11 }));
+        Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x22, 0x22, 0x22, 0x22 }));
+        Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x33, 0x33, 0x33, 0x33 }));
+        Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0x44, 0x44, 0x44, 0x44 }));
+        Inbox.Enqueue(new MAGEMsg(5, new byte[] { 1, 0x55, 0x55, 0x55, 0x55 }));
+        Inbox.Enqueue(new MAGEMsg(6, new byte[] { 1, 0x66, 0x66, 0x66, 0x66 }));
+        //Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xEE, 0xEE }));
                                 //0x13A200409377D6
-        //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x22, 0x22, 0xBB, 0xBB }));
 
         StartThreads();
     }
@@ -98,23 +101,6 @@ public static class Coordinator
         }
     }
 
-    public static void Receive()
-    {
-        try
-        {
-            int bytes = Serial.BytesToRead;
-            while (bytes-- > 0)
-            {
-                MAGEMsg.Decode((byte)Serial.ReadByte());
-                if (MAGEMsg.Ready)
-                {
-                    Inbox.Enqueue(MAGEMsg.CurrentMessage);
-                }
-            }
-        }
-        catch(Exception) { }
-    }
-
     public static void TX()
     {
         while (_txRunning)
@@ -168,19 +154,24 @@ public static class Coordinator
     public static string GetPort()
     {
         string pattern = string.Format("VID_{0}+PID_{1}+{2}", Constants.Coordinator_VID, Constants.Coordinator_PID, Constants.Coordinator_SN);
-        RegistryKey ftdi_key = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\FTDIBUS");
+        RegistryKey ftdiKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\FTDIBUS");
 
-        foreach (string s in ftdi_key.GetSubKeyNames())
+        foreach (string s in ftdiKey.GetSubKeyNames())
         {
             if (s.Contains(pattern))
             {
-                string port = (string)ftdi_key.OpenSubKey(s).OpenSubKey("0000").OpenSubKey("Device Parameters").GetValue("PortName");
-                foreach(string p in SerialPort.GetPortNames())
+                string port = (string)ftdiKey.OpenSubKey(s).OpenSubKey("0000").OpenSubKey("Device Parameters").GetValue("PortName");
+                if (SerialPort.GetPortNames().Any(p => p == port))
                 {
-                    if (p == port) return port;
+                    return port;
                 }
             }
         }
         return null;
+    }
+
+    public static void InjectMessage(MAGEMsg msg)
+    {
+        Inbox.Enqueue(msg);
     }
 }

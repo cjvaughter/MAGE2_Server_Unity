@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UI;
-using System.IO;
-using System.Collections;
-using System.Text.RegularExpressions;
-using System.Reflection;
-using System.Diagnostics;
 
 public class ConfigController : MonoBehaviour
 {
@@ -15,7 +14,7 @@ public class ConfigController : MonoBehaviour
     public UpDown RoundLength;
     public UpDown Rounds;
     public UpDown Players;
-    public Dropdown gameType;
+    public Dropdown GameType;
     public GameObject Dimmer;
     public GameObject InfoDialog;
     public Text Info;
@@ -29,20 +28,20 @@ public class ConfigController : MonoBehaviour
     public GameObject NoCoordinatorDialog;
 
     private int _oldRounds, _oldRoundLength, _oldPlayers;
-    private string port;
+    private string _port;
     private Version currentVersion = typeof(Game).Assembly.GetName().Version;
-    private Version PIUVersion = new Version(0, 0);
-    private Version newServerVersion = new Version(0, 0, 0, 0);
-    private string server_download_url = "";
-    private Version newPIUVersion = new Version(0, 0);
-    private string piu_download_url = "";
-    private bool checkforupdates = false;
+    private Version _piuVersion = new Version(0, 0);
+    private Version _newServerVersion = new Version(0, 0, 0, 0);
+    private string _serverDownloadURL = "";
+    private Version _newPIUVersion = new Version(0, 0);
+    private string _piuDownloadURL = "";
+    private bool _checkforupdates = false;
 
     void Awake()
     {
         Application.runInBackground = true;
         FaderFromSplash.SetActive(true);
-        checkforupdates = true;
+        _checkforupdates = true;
     }
 
     void OnLevelWasLoaded()
@@ -54,7 +53,8 @@ public class ConfigController : MonoBehaviour
     void Start()
     {
         LoadSettings();
-        Info.text = Info.text.Replace("Build 0.0.0.0", "Build " + typeof(Game).Assembly.GetName().Version.ToString());
+        Directory.CreateDirectory(@".\PIU Firmware");
+        Info.text = Info.text.Replace("Build 0.0.0.0", "Build " + typeof(Game).Assembly.GetName().Version);
         Version highestVersion = new Version(0, 0);
         foreach(string s in Directory.GetFiles(@".\PIU Firmware", "PIU-*.hex"))
         {
@@ -62,10 +62,10 @@ public class ConfigController : MonoBehaviour
             if (v > highestVersion)
                 highestVersion = v;
         }
-        PIUVersion = highestVersion;
-        Info.text = Info.text.Replace("PIU Firmware 0.0", "PIU Firmware " + PIUVersion.ToString());
+        _piuVersion = highestVersion;
+        Info.text = Info.text.Replace("PIU Firmware 0.0", "PIU Firmware " + _piuVersion);
 
-        if (checkforupdates) StartCoroutine("CheckForUpdates");
+        if (_checkforupdates) StartCoroutine("CheckForUpdates");
 	}
 
     public void StartGame()
@@ -78,9 +78,9 @@ public class ConfigController : MonoBehaviour
     {
         //Game Type
         foreach (string s in Enum.GetNames(typeof(GameType)))
-            gameType.options.Add(new Dropdown.OptionData(s.Expand()));
-        gameType.value = -1;
-        gameType.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
+            GameType.options.Add(new Dropdown.OptionData(s.Expand()));
+        GameType.value = -1;
+        GameType.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
 
         //Round Length
         RoundLength.Value = Settings.RoundLength;
@@ -94,18 +94,18 @@ public class ConfigController : MonoBehaviour
 
     bool ValidateSettings()
     {
-        port = Coordinator.GetPort();
-        if(port == null)
+        _port = Coordinator.GetPort();
+        if(_port == null)
         {
             Dimmer.SetActive(true);
             NoCoordinatorDialog.SetActive(true);
             return false;
         }
 
-        Settings.GameType = ((GameType)gameType.value).ToString().Expand();
+        Settings.GameType = ((GameType)GameType.value).ToString().Expand();
         Settings.RoundLength = RoundLength.Value;
         Settings.Rounds = Rounds.Value;
-        Settings.Port = port;
+        Settings.Port = _port;
         Settings.PlayerCount = Players.Value;
         Settings.Save();
         return true;
@@ -114,7 +114,7 @@ public class ConfigController : MonoBehaviour
 
     public void OnGameTypeChanged()
     {
-        if(gameType.value == (int)GameType.TestMode)
+        if(GameType.value == (int)global::GameType.TestMode || GameType.value == (int)global::GameType.Legacy)
         {
             _oldRoundLength = RoundLength.Value;
             _oldRounds = Rounds.Value;
@@ -128,18 +128,9 @@ public class ConfigController : MonoBehaviour
         }
         else
         {
-            if (_oldRoundLength == 0)
-                RoundLength.Value = RoundLength.DefaultValue;
-            else
-                RoundLength.Value = _oldRoundLength;
-            if (_oldRounds == 0)
-                Rounds.Value = Rounds.DefaultValue;
-            else
-                Rounds.Value = _oldRounds;
-            if (_oldPlayers == 0)
-                Players.Value = Players.DefaultValue;
-            else
-                Players.Value = _oldPlayers;
+            RoundLength.Value = _oldRoundLength == 0 ? RoundLength.DefaultValue : _oldRoundLength;
+            Rounds.Value = _oldRounds == 0 ? Rounds.DefaultValue : _oldRounds;
+            Players.Value = _oldPlayers == 0 ? Players.DefaultValue : _oldPlayers;
 
             RoundLength.interactable = true;
             Rounds.interactable = true;
@@ -189,13 +180,13 @@ public class ConfigController : MonoBehaviour
             foreach (Match m in pattern.Matches(www.text))
             {
                 Version v = new Version(m.Captures[0].Value.Replace("MAGE 2 Setup-", "").Replace(".exe", ""));
-                if (v > newServerVersion) newServerVersion = v;
+                if (v > _newServerVersion) _newServerVersion = v;
             }
-            if (newServerVersion > currentVersion)
+            if (_newServerVersion > currentVersion)
             {
                 serverUpdate = true;
-                pattern = new Regex(Constants.URLPattern + newServerVersion.ToString() + Constants.EndPattern);
-                server_download_url = pattern.Match(www.text).Value;
+                pattern = new Regex(Constants.URLPattern + _newServerVersion + Constants.EndPattern);
+                _serverDownloadURL = pattern.Match(www.text).Value;
             }
         }
 
@@ -207,26 +198,26 @@ public class ConfigController : MonoBehaviour
             foreach (Match m in pattern.Matches(www.text))
             {
                 Version v = new Version(m.Captures[0].Value.Replace("PIU-", "").Replace(".hex", ""));
-                if (v > newPIUVersion) newPIUVersion = v;
+                if (v > _newPIUVersion) _newPIUVersion = v;
             }
-            if (newPIUVersion > PIUVersion)
+            if (_newPIUVersion > _piuVersion)
             {
                 piuUpdate = true;
-                pattern = new Regex(Constants.URLPattern + newPIUVersion.ToString() + Constants.EndPattern);
-                piu_download_url = pattern.Match(www.text).Value;
+                pattern = new Regex(Constants.URLPattern + _newPIUVersion + Constants.EndPattern);
+                _piuDownloadURL = pattern.Match(www.text).Value;
             }
         }
 
         if(serverUpdate)
         {
             Dimmer.SetActive(true);
-            ServerUpdateText.text = ServerUpdateText.text.Replace("0.0.0.0", newServerVersion.ToString());
+            ServerUpdateText.text = ServerUpdateText.text.Replace("0.0.0.0", _newServerVersion.ToString());
             ServerUpdateDialog.SetActive(true);
         }
         else if(piuUpdate)
         {
             Dimmer.SetActive(true);
-            PIUUpdateText.text = PIUUpdateText.text.Replace("0.0", newPIUVersion.ToString());
+            PIUUpdateText.text = PIUUpdateText.text.Replace("0.0", _newPIUVersion.ToString());
             PIUUpdateDialog.SetActive(true);
         }
         yield return null;
@@ -260,30 +251,30 @@ public class ConfigController : MonoBehaviour
 
     IEnumerator DownloadServer()
     {
-        WWW www = new WWW(server_download_url);
+        WWW www = new WWW(_serverDownloadURL);
         while(true)
         {
             DownloadProgress.value = www.progress;
             if (www.progress == 1.0f) break;
             yield return new WaitForSeconds(0.5f);
         }
-        File.WriteAllBytes(@".\Temp\MAGE 2 Setup-" + newServerVersion.ToString() + ".exe", www.bytes);
+        File.WriteAllBytes(@".\Temp\MAGE 2 Setup-" + _newServerVersion + ".exe", www.bytes);
 
-        Process.Start(@".\Temp\MAGE 2 Setup-" + newServerVersion.ToString() + ".exe");
+        Process.Start(@".\Temp\MAGE 2 Setup-" + _newServerVersion + ".exe");
         Exit();
         yield return null;
     }
 
     IEnumerator DownloadPIU()
     {
-        WWW www = new WWW(piu_download_url);
+        WWW www = new WWW(_piuDownloadURL);
         while (true)
         {
             DownloadProgress.value = www.progress;
             if (www.isDone) break;
             yield return new WaitForSeconds(0.5f);
         }
-        File.WriteAllBytes(@".\PIU Firmware\PIU-" + newPIUVersion.ToString() + ".hex", www.bytes);
+        File.WriteAllBytes(@".\PIU Firmware\PIU-" + _newPIUVersion + ".hex", www.bytes);
         DownloadCompleteDialog.SetActive(true);
         DownloadDialog.SetActive(false);
         yield return null;

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Threading;
-using UnityEngine;
-using UnityEngine.UI;
+using System.Collections.Generic;
 
 public enum GameState : byte
 {
@@ -10,6 +8,7 @@ public enum GameState : byte
     Ready,      // for round to start
     Active,     // during a round
     Timeout,    // break between rounds
+    Finished,   // player won the round
     Complete,   // game over
 }
 
@@ -19,10 +18,17 @@ public static class Game
 
     const int TimeoutPeriod = 3000;
     const int ReadyPeriod = 7000;
+    const int FinishedPeriod = 2000;
 
     static long _lastTime;
     static int _countdown;
     static bool _running;
+
+    static bool _demo;
+    static long _nextTime;
+    static byte _unique;
+    static Random Chance = new Random();
+    static List<SpellType> Spells = new List<SpellType>();
 
     static TimeSpan UtcOffset { get; set; }
     public static DateTime Now { get { return DateTime.UtcNow + UtcOffset; } }
@@ -44,6 +50,9 @@ public static class Game
 
     public static void Start()
     {
+        _demo = false;
+        _nextTime = 0;
+
         CurrentTime = Now.TimeOfDay.Ticks;
         _lastTime = CurrentTime;
         TimeRemaining = 0;
@@ -60,11 +69,23 @@ public static class Game
         {
             case GameType.FreeForAll:
                 Rules = new FreeForAll();
+                _demo = true;
+                Spells.Add(SpellType.Damage);
+                //Spells.Add(SpellType.Stun);
+                Spells.Add(SpellType.Fire);
+                Spells.Add(SpellType.Water);
+                //Spells.Add(SpellType.Earth);
+                Spells.Add(SpellType.Ice);
+                //Spells.Add(SpellType.Rock);
+                Spells.Add(SpellType.Poison);
+                Spells.Add(SpellType.Psychic);
+                Spells.Add(SpellType.Ghost);
+                //Spells.Add(SpellType.Shadow);
                 break;
             case GameType.TeamBattle:
                 Rules = new TeamBattle();
-                Teams.Add(new Team());
-                Teams.Add(new Team());
+                Teams.Add(Colors.Blue);
+                Teams.Add(Colors.Red);
                 break;
             case GameType.TestMode:
                 Rules = new TestMode();
@@ -77,7 +98,6 @@ public static class Game
         HUDPanelBehavior.Initialize(Settings.GameType, Rounds);
         Coordinator.Start();
         Database.Create();
-        Database.Connect();
         Logger.Log(LogEvents.ServerInitialized);
         _running = true;
     }
@@ -97,7 +117,6 @@ public static class Game
             Coordinator.Stop();
             Players.ResetPlayers(); //To kill effects
             Players.Clear();
-            Database.Disconnect();
             _running = false;
         }
         yield return null;
@@ -126,6 +145,7 @@ public static class Game
         {
             //Coordinator.Receive();
             CurrentTime = Now.TimeOfDay.Ticks;
+            if (_demo) InjectMessages();
             ProcessMessages();
             UpdateState();
         }
@@ -202,42 +222,13 @@ public static class Game
 
     private static void UpdateState()
     {
-        if (CurrentTime - _lastTime >= TimeSpan.TicksPerMillisecond)
+        if (CurrentTime - _lastTime < TimeSpan.TicksPerMillisecond) return;
+
+        if (Rules.Timed)
         {
-            if (Rules.Timed && State != GameState.Waiting)
-            {
-                TimeRemaining -= TimeSpan.FromTicks(CurrentTime - _lastTime).Milliseconds;
-            }
-            _lastTime = CurrentTime;
+            DoTiming();
 
-            if (TimeRemaining <= 5000 && _countdown == 5)
-            {
-                if(State == GameState.Active) Announcer.Speak(Phrase.Five);
-                if (State == GameState.Ready) Announcer.Speak(Phrase.Ready);
-                _countdown--;
-            }
-            else if (TimeRemaining <= 4000 && _countdown == 4)
-            {
-                if (State == GameState.Active) Announcer.Speak(Phrase.Four);
-                _countdown--;
-            }
-            else if (TimeRemaining <= 3000 && _countdown == 3)
-            {
-                Announcer.Speak(Phrase.Three);
-                _countdown--;
-            }
-            else if (TimeRemaining <= 2000 && _countdown == 2)
-            {
-                Announcer.Speak(Phrase.Two);
-                _countdown--;
-            }
-            else if (TimeRemaining <= 1000 && _countdown == 1)
-            {
-                Announcer.Speak(Phrase.One);
-                _countdown--;
-            }
-
-            if (Rules.Timed && TimeRemaining <= 0)
+            if (TimeRemaining <= 0)
             {
                 TimeRemaining = 0;
                 switch (State)
@@ -248,7 +239,7 @@ public static class Game
                             State = GameState.Timeout;
                             TimeRemaining = TimeoutPeriod;
                             Logger.Log(LogEvents.GameBegan);
-                            switch(Type)
+                            switch (Type)
                             {
                                 case GameType.FreeForAll:
                                     Announcer.Speak(Phrase.FreeForAll);
@@ -298,20 +289,103 @@ public static class Game
                         Announcer.Speak(Phrase.Go);
                         _countdown = 5;
                         break;
+                    case GameState.Finished:
+                        Players.ResetPlayers();
+                        State = GameState.Timeout;
+                        TimeRemaining = TimeoutPeriod - FinishedPeriod;
+                        break;
                 }
             }
+        }
 
-            Players.VerifyHeartbeats();
-            Players.ClearExpiredEffects();
-            Spell.ClearExpired();
+        Players.VerifyHeartbeats();
+        Players.ClearExpiredEffects();
+        Spell.ClearExpired();
 
-            if (Rules.GameIsOver && State != GameState.Waiting) // Did somebody win?
+        if (Rules.GameIsOver && !(State == GameState.Waiting || State == GameState.Finished)) // Did somebody win?
+        {
+            Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
+            Logger.Log(LogEvents.RoundEnded, Round);
+            _countdown = 0;
+            if (Round == Rounds)
+            {
+                Players.ResetPlayers();
                 State = GameState.Complete;
+                Logger.Log(LogEvents.GameEnded);
+                Announcer.Speak(Phrase.Game);
+            }
+            else
+            {
+                State = GameState.Finished;
+                TimeRemaining = FinishedPeriod;
+                Announcer.Speak(Phrase.Finished);
+                //log round winner for xp bonus and to determine overall winner
+            }
+        }
+    }
+
+    private static void DoTiming()
+    {
+        if (State != GameState.Waiting)
+        {
+            TimeRemaining -= TimeSpan.FromTicks(CurrentTime - _lastTime).Milliseconds;
+        }
+        _lastTime = CurrentTime;
+
+        if (TimeRemaining <= 5000 && _countdown == 5)
+        {
+            if (State == GameState.Active) Announcer.Speak(Phrase.Five);
+            if (State == GameState.Ready) Announcer.Speak(Phrase.Ready);
+            _countdown--;
+        }
+        else if (TimeRemaining <= 4000 && _countdown == 4)
+        {
+            if (State == GameState.Active) Announcer.Speak(Phrase.Four);
+            _countdown--;
+        }
+        else if (TimeRemaining <= 3000 && _countdown == 3)
+        {
+            Announcer.Speak(Phrase.Three);
+            _countdown--;
+        }
+        else if (TimeRemaining <= 2000 && _countdown == 2)
+        {
+            Announcer.Speak(Phrase.Two);
+            _countdown--;
+        }
+        else if (TimeRemaining <= 1000 && _countdown == 1)
+        {
+            Announcer.Speak(Phrase.One);
+            _countdown--;
         }
     }
 
     private static void Wrapup()
     {
         //Announce winner(s), do levelups, save to db, play again?, exit
+    }
+
+    private static void InjectMessages()
+    {
+        if(State == GameState.Active && CurrentTime > _nextTime)
+        {
+            _nextTime = CurrentTime + Chance.Next(1000, 1500) * TimeSpan.TicksPerMillisecond;
+
+            List<Player> available = Players.PlayerList.FindAll(p => p.State == EntityState.Alive);
+            if (available.Count < 2) return;
+
+            Player p1 = available.PickRandom();
+            Player p2 = available.PickRandom();
+
+            if (available.Count == 2 && p2.State == EntityState.Stunned) return;
+
+            while (p1 == p2 && p2.State == EntityState.Alive)
+                p2 = available.PickRandom();
+
+            SpellType type = Spells.PickRandom();
+
+            Coordinator.InjectMessage(new MAGEMsg(p2.Address, new byte[] { (byte)MsgFunc.Spell_TX, _unique }));
+            Coordinator.InjectMessage(new MAGEMsg(p1.Address, new byte[] { (byte)MsgFunc.Spell_RX, (byte)(p2.ID >> 8), (byte)p2.ID, (byte)type, 100, _unique++ }));
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using System.Collections;
 using VolumetricLines;
 
 public class GenerateLightning : MonoBehaviour
@@ -7,35 +6,35 @@ public class GenerateLightning : MonoBehaviour
     public Vector2 StartPoint, EndPoint;
     public float Range = 0.25f;
     public int FrameRate = 24;
-    public VolumetricMultiLineBehavior line;
-    Vector3[] Points;
-    float linePosY, linePosX;
+    public VolumetricMultiLineBehavior Line;
+    Vector3[] _points;
+    float _linePosY, _linePosX;
     public bool Vertical;
 
-    int updateCount = 1;
-    int rate;
+    int _updateCount = 1;
+    int _rate;
 
 	void Start()
     {
         Random.seed = Time.frameCount;
-        rate = (int)60.0f / FrameRate;
-        Points = new Vector3[line.m_lineVertices.Length];
-        for (int i = 0; i < Points.Length; i++)
+        _rate = (int)60.0f / FrameRate;
+        _points = new Vector3[Line.m_lineVertices.Length];
+        for (int i = 0; i < _points.Length; i++)
         {
-            Points[i].z = -0.1f;
+            _points[i].z = -0.1f;
         }
-        Points[0].x = StartPoint.x;
-        Points[0].y = StartPoint.y;
+        _points[0].x = StartPoint.x;
+        _points[0].y = StartPoint.y;
 
-        linePosY = (StartPoint.y + EndPoint.y) / 2;
-        linePosX = (StartPoint.x + EndPoint.x) / 2;
+        _linePosY = (StartPoint.y + EndPoint.y) / 2;
+        _linePosX = (StartPoint.x + EndPoint.x) / 2;
     }
 
 	void FixedUpdate()
     {
-	    if(updateCount < rate)
+	    if(_updateCount < _rate)
         {
-            updateCount++;
+            _updateCount++;
             return;
         }
 
@@ -46,8 +45,8 @@ public class GenerateLightning : MonoBehaviour
             float step = Mathf.Abs(EndPoint.y - StartPoint.y) / length;
             for (int i = 1; i < length; i++)
             {
-                Points[i].y = StartPoint.y - step * i;
-                Points[i].x = linePosX - Range + Random.value * Range * 2;
+                _points[i].y = StartPoint.y - step * i;
+                _points[i].x = _linePosX - Range + Random.value * Range * 2;
             }
         }
         else
@@ -56,17 +55,17 @@ public class GenerateLightning : MonoBehaviour
             float step = Mathf.Abs(EndPoint.x - StartPoint.x) / length;
             for (int i = 1; i < length; i++)
             {
-                Points[i].x = StartPoint.x + step * i;
-                Points[i].y = linePosY - Range + Random.value * Range * 2;
+                _points[i].x = StartPoint.x + step * i;
+                _points[i].y = _linePosY - Range + Random.value * Range * 2;
             }
         }
 
-        for (int i = length - 1; i < Points.Length; i++)
+        for (int i = length - 1; i < _points.Length; i++)
         {
-            Points[i].x = EndPoint.x;
-            Points[i].y = EndPoint.y;
+            _points[i].x = EndPoint.x;
+            _points[i].y = EndPoint.y;
         }
-        line.UpdateLineVertices(Points);
-        updateCount = 1;
+        Line.UpdateLineVertices(_points);
+        _updateCount = 1;
 	}
 }

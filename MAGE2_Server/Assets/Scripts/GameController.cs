@@ -1,51 +1,99 @@
 ﻿using System;
-using UnityEngine;
-using UnityEngine.UI;
-using System.IO.Ports;
 using System.Collections;
 using System.Diagnostics;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
 {
-    public ScrollRect logScroll;
-    public Text logPanel;
-    public GameObject overlay;
+    public CameraMovement MainCamera;
+    public ScrollRect LogScroll;
+    public Text LogPanel;
+    public GameObject Overlay;
     public GameObject PauseDimmer;
     public GameObject PlayAgainDimmer;
     public GameObject ExitDimmer;
     public GameObject FaderIn;
     public GameObject FaderOut;
-    public InfoPanelBehavior infoPanel;
-    public GameObject controlPanel;
+    public InfoPanelBehavior InfoPanel;
+    public GameObject ControlPanel;
+    public Button PauseButton;
 
-    private PanelBehavior SelectedPlayer;
+    private PanelBehavior _selectedPlayer;
     private Vector3 _lastCameraPos;
-
+    private int _playerCount = 0;
+    private int _teamCount = 0;
+    private int _rowCount = 0;
     private bool _paused;
+    public bool Legacy;
 
     public void SelectPlayer(PanelBehavior player)
     {
-        if (SelectedPlayer == null)
+        if (_selectedPlayer == null)
         {
-            SelectedPlayer = player;
+            _selectedPlayer = player;
             _lastCameraPos = Camera.main.transform.position;
             Camera.main.GetComponent<CameraMovement>().SetPosition(player.gameObject.transform.position, false);
             Camera.main.GetComponent<CameraMovement>().SetZoom(100);
-            infoPanel.SetPlayer(Players.Get(SelectedPlayer.ID));
+            InfoPanel.SetPlayer(player.Player);
         }
-        else if (SelectedPlayer == player)
+        else if (_selectedPlayer == player)
         {
-            SelectedPlayer = null;
+            _selectedPlayer = null;
             Camera.main.GetComponent<CameraMovement>().SetPosition(_lastCameraPos);
             Camera.main.GetComponent<CameraMovement>().SetZoom(0);
-            infoPanel.SetPlayer(null);
+            InfoPanel.SetPlayer(null);
         }
         else
         {
-            SelectedPlayer = player;
+            _selectedPlayer = player;
             Camera.main.GetComponent<CameraMovement>().SetPosition(player.gameObject.transform.position, false);
-            infoPanel.SetPlayer(Players.Get(SelectedPlayer.ID));
+            InfoPanel.SetPlayer(player.Player);
         }
+    }
+
+    public void AddPlayerPanel(PanelBehavior player)
+    {
+        float xPos = 0.0f;
+        float yPos = 0.0f;
+
+        if(Legacy)
+        {
+            xPos = -10.5f + 7 * (_playerCount % 4);
+            yPos = 3.5f - 3.5f * (_playerCount / 4);
+            _rowCount = (_playerCount / 4);
+        }
+        else if (Game.Rules.TeamBased)
+        {
+            int num = Teams.GetPlayers(player.Player.Team).Count;
+            if (num > _rowCount) _rowCount = num;
+
+            yPos = 3.5f - 3.5f * (num - 1);
+            switch(player.Player.Team)
+            {
+                case Colors.Red:
+                    xPos = -10.5f;
+                    break;
+                case Colors.Yellow:
+                    xPos = -3.5f;
+                    break;
+                case Colors.Green:
+                    xPos = 3.5f;
+                    break;
+                case Colors.Blue:
+                    xPos = 10.5f;
+                    break;
+            }
+        }
+        else
+        {
+            xPos = -10.5f + 7 * (_playerCount % 4);
+            yPos = 3.5f - 3.5f * (_playerCount / 4);
+            _rowCount = (_playerCount / 4);
+        }
+        MainCamera.SetRows(_rowCount);
+        player.gameObject.transform.position = new Vector3(xPos, yPos, 0);
+        _playerCount++;
     }
 
     void Awake()
@@ -55,21 +103,39 @@ public class GameController : MonoBehaviour
 
     void Start()
     {
-        Logger.LogScroll = logScroll;
-        Logger.LogPanel = logPanel;
-        Logger.Initialize();
+        if (Settings.GameType == "Legacy")
+        {
+            global::Legacy.Logger.LogScroll = LogScroll;
+            global::Legacy.Logger.LogPanel = LogPanel;
+            global::Legacy.Logger.Initialize();
+        }
+        else
+        {
+            Logger.LogScroll = LogScroll;
+            Logger.LogPanel = LogPanel;
+            Logger.Initialize();
+        }
 
         try
         {
-        #if !UNITY_EDITOR
+#if !UNITY_EDITOR
             Console.SetOut(new ConsoleWriter(logPanel));
-        #endif
-            Game.Announcer = overlay.GetComponent<AnnouncerBehavior>();
-            Game.Start();
-            if (Game.Type == GameType.TestMode)
+#endif
+            if (Settings.GameType == "Legacy")
             {
-                controlPanel.SetActive(true);
-                infoPanel.gameObject.SetActive(false);
+                Legacy = true;
+                PauseButton.gameObject.SetActive(false);
+                global::Legacy.Game.Start();
+            }
+            else
+            {
+                Game.Announcer = Overlay.GetComponent<AnnouncerBehavior>();
+                Game.Start();
+                if (Game.Type == GameType.TestMode)
+                {
+                    ControlPanel.SetActive(true);
+                    InfoPanel.gameObject.SetActive(false);
+                }
             }
         }
         catch (Exception e)
@@ -80,26 +146,28 @@ public class GameController : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        Game.Stop();
+        if (Legacy) global::Legacy.Game.Stop();
+        else Game.Stop();
     }
 
     void Update()
     {
         int time = (Game.State == GameState.Active) ? Game.TimeRemaining : 0;
         HUDPanelBehavior.UpdatePanel(time, Game.Round);
-        infoPanel.UpdateInfo();
     }
 
     void FixedUpdate()
     {
         try
         {
-            Game.Run();
+            if (Legacy) global::Legacy.Game.Run();
+            else Game.Run();
         }
         catch(Exception e)
         {
             StackTrace trace = new StackTrace(e, true);
-            Logger.Log(e.Message + " in \"" + trace.GetFrame(0).GetFileName() + "\" at " + trace.GetFrame(0).GetFileLineNumber() + "\r\n");
+            if(Legacy) global::Legacy.Logger.Log(e.Message + " in \"" + trace.GetFrame(0).GetFileName() + "\" at " + trace.GetFrame(0).GetFileLineNumber() + "\r\n");
+            else Logger.Log(e.Message + " in \"" + trace.GetFrame(0).GetFileName() + "\" at " + trace.GetFrame(0).GetFileLineNumber() + "\r\n");
         }
     }
 
@@ -170,6 +238,7 @@ public class GameController : MonoBehaviour
 
     IEnumerator Stop()
     {
+        if (Legacy) return global::Legacy.Game.Stop();
         return Game.Stop();
     }
 
@@ -191,7 +260,11 @@ public class GameController : MonoBehaviour
 
     private void CastSpell(SpellType spell)
     {
-        if(SelectedPlayer)
-            Spell.DetermineSuccess(Players.Get(SelectedPlayer.ID), new IRPacket() { ID = SelectedPlayer.ID, Spell = spell });
+        if (_selectedPlayer)
+            Spell.DetermineSuccess(_selectedPlayer.Player, new IRPacket() { Spell = spell }, true);
+        else
+        {
+            Spell.DetermineSuccess(new Player() { Team = Colors.Red}, new IRPacket() { Spell = (SpellType)Enum.Parse(typeof(SpellType), spell.ToString() + "Team", true) }, true);
+        }
     }
 }

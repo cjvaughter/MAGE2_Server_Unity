@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
-using UnityEngine;
 
 public enum SpellType : byte
 {
@@ -80,7 +78,8 @@ public class Spell
         set
         {
             _multiplier = value;
-            PrimaryValue = (int)(PrimaryValue * _multiplier);
+            if (PrimaryEffect != SpellEffect.Stun)
+                PrimaryValue = (int)(PrimaryValue * _multiplier);
             if(SecondaryEffect != SpellEffect.Repeat)
                 SecondaryValue = (int)(SecondaryValue * _multiplier);
             StrengthModifier = (int)(StrengthModifier * _multiplier);
@@ -115,24 +114,23 @@ public class Spell
     public const long SpellTimeout = TimeSpan.TicksPerSecond * 2;
     public const int MaxChance = 100;
     static List<IRPacket> SpellQueue = new List<IRPacket>();
-    static System.Random Chance = new System.Random();
+    static Random Chance = new Random();
 
-    public static readonly int[,] DamageMatrix = new int[,]
-    {
-            //Nor, Fir, Wat, Ear, Air, Ice, Roc, Ele, Poi, Psy, Gho, Sha, Lig 
-/*Normal*/  {100, 100, 100, 100, 100, 100,  50, 100, 100, 100,   0, 100, 100},
-/*Fire*/    {100,  50,  50, 100, 100, 200,  50, 100, 100, 100, 100, 100, 100},
-/*Water*/   {100, 200,  50, 200, 100, 100, 200, 100, 100, 100, 100, 100, 100},
-/*Earth*/   {100, 200, 100, 100,   0, 100, 200, 200, 200, 100, 100, 100, 100},
-/*Air*/     {100, 100, 100, 100, 100, 100,  50,  50, 100, 100, 100, 100, 100},
-/*Ice*/     {100,  50,  50, 200, 200,  50, 100, 100, 100, 100, 100, 100, 100},
-/*Rock*/    {100, 200, 100,  50, 200, 200, 100, 100, 100, 100, 100, 100, 100},
-/*Electric*/{100, 100, 200,   0, 200, 100, 100,  50, 100, 100, 100, 100, 100},
-/*Poison*/  {100, 100, 100,  50, 100, 100,  50, 100,  50, 100,  50, 100, 100},
-/*Psychic*/ {100, 100, 100, 100, 100, 100, 100, 100, 200,  50, 100, 100, 100},
-/*Ghost*/   {100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 100, 100},
-/*Shadow*/  {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
-/*Light*/   {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+    private static readonly int[][] DamageMatrix = {
+                  //Nor, Fir, Wat, Ear, Air, Ice, Roc, Ele, Poi, Psy, Gho, Sha, Lig 
+/*Normal*/  new [] {100, 100, 100, 100, 100, 100,  50, 100, 100, 100,   0, 100, 100},
+/*Fire*/    new [] {100,  50,  50, 100, 100, 200,  50, 100, 100, 100, 100, 100, 100},
+/*Water*/   new [] {100, 200,  50, 200, 100, 100, 200, 100, 100, 100, 100, 100, 100},
+/*Earth*/   new [] {100, 200, 100, 100,   0, 100, 200, 200, 200, 100, 100, 100, 100},
+/*Air*/     new [] {100, 100, 100, 100, 100, 100,  50,  50, 100, 100, 100, 100, 100},
+/*Ice*/     new [] {100,  50,  50, 200, 200,  50, 100, 100, 100, 100, 100, 100, 100},
+/*Rock*/    new [] {100, 200, 100,  50, 200, 200, 100, 100, 100, 100, 100, 100, 100},
+/*Electric*/new [] {100, 100, 200,   0, 200, 100, 100,  50, 100, 100, 100, 100, 100},
+/*Poison*/  new [] {100, 100, 100,  50, 100, 100,  50, 100,  50, 100,  50, 100, 100},
+/*Psychic*/ new [] {100, 100, 100, 100, 100, 100, 100, 100, 200,  50, 100, 100, 100},
+/*Ghost*/   new [] {100, 100, 100, 100, 100, 100, 100, 100, 100, 200, 200, 100, 100},
+/*Shadow*/  new [] {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+/*Light*/   new [] {100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
     };
 
     public static void Add(Player caster, byte[] data)
@@ -144,14 +142,14 @@ public class Spell
     {
         IRPacket spell = new IRPacket() { ID = (ushort)(data[1] << 8 | data[2]), Spell = (SpellType)data[3], Strength = data[4], Unique = data[5] };
 
-        IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID /*&& packet.Unique == spell.ID*/);
+        IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID && packet.Unique == spell.Unique);
         if (queuedSpell != null)
         {
             SpellQueue.Remove(queuedSpell);
             if (defender.ActiveEffect == null)
-                DetermineSuccess(defender, spell, true);
+                DetermineSuccess(defender, spell);
             else if (defender.ActiveEffect.Overridable)
-                DetermineSuccess(defender, spell, true);
+                DetermineSuccess(defender, spell);
         }
     }
 
@@ -165,8 +163,29 @@ public class Spell
         }
     }
 
-    public static void DetermineSuccess(Player defender, IRPacket packet, bool forceSuccess = false)
+    public static void DetermineSuccess(Player defender, IRPacket packet, bool force = false)
     {
+        if(force)
+        {
+            Player god = new Player() { Name = "God" };
+            if (packet.Spell.ToString().Contains("Team"))
+            {
+                packet.Spell = (SpellType)Enum.Parse(typeof(SpellType), packet.Spell.ToString().Replace("Team", ""), true);
+
+                Logger.Log(LogEvents.WasHit, god, new Entity() { Name = "Everyone" }, packet.Spell);
+                foreach (Player p in Teams.GetPlayers(defender.Team))
+                {
+                    DoSpell(p, god, packet);
+                }
+            }
+            else
+            {
+                if (DoSpell(defender, god, packet))
+                    Logger.Log(LogEvents.WasHit, god, defender, packet.Spell);
+            }
+            return;
+        }
+
         Player caster = Players.Get(packet.ID);
 
         float odds = ((float)caster.Strength / (caster.Strength + defender.Defense)) * MaxChance;
@@ -174,51 +193,93 @@ public class Spell
         odds -= Chance.Next(defender.Luck);
         bool success = odds >= Chance.Next(MaxChance);
 
-        if (success || forceSuccess)
+        if (success)
         {
             caster.Hits++;
-            caster.XP += 10;
-            Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
 
-            defender.ActiveEffect = Activator.CreateInstance(Type.GetType(packet.Spell.ToString()), caster) as Spell;
-            //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
-            //defender.ActiveEffect.Multiplier = (packet.Strength/100.0f) * (caster.Strength/100.0f*caster.Level) * (DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type]/100.0f);
-            defender.ActiveEffect.Multiplier = 1.5f;
-            
-            switch(defender.ActiveEffect.PrimaryEffect)
+            if(packet.Spell.ToString().Contains("Team"))
             {
-                case SpellEffect.Damage:
-                    defender.State = EntityState.Damaged;
-                    defender.Health -= defender.ActiveEffect.PrimaryValue;
-                    break;
-                case SpellEffect.Stun:
-                    defender.State = EntityState.Stunned;
-                    defender.ActiveEffect.ExpireTime = defender.ActiveEffect.PrimaryValue;
-                    break;
-                case SpellEffect.Heal:
-                    defender.State = EntityState.Healed;
-                    defender.Health += defender.ActiveEffect.PrimaryValue;
-                    break;
-            }
+                caster.XP += 50;
+                Team team = Teams.Get(defender.Team);
+                packet.Spell = (SpellType)Enum.Parse(typeof(SpellType), packet.Spell.ToString().Replace("Team", ""), true);
 
-            switch(defender.ActiveEffect.SecondaryEffect)
+                Logger.Log(LogEvents.WasHit, caster, team, packet.Spell);
+                foreach (Player p in Teams.GetPlayers(defender.Team))
+                {
+                    DoSpell(p, caster, packet);
+                }
+            }
+            else
             {
-                case SpellEffect.Damage:
-                    defender.Health -= defender.ActiveEffect.SecondaryValue;
-                    break;
+                caster.XP += 10;
+                if(DoSpell(defender, caster, packet))
+                    Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
             }
-
-            defender.Restore(); //Set strength defense and luck back to normal
-            defender.Strength += defender.ActiveEffect.StrengthModifier;
-            defender.Defense += defender.ActiveEffect.DefenseModifier;
-            defender.Luck += defender.ActiveEffect.LuckModifier;
-
-            Coordinator.UpdatePlayer(defender);
         }
         else
         {
             defender.XP += 5; //XP for resisting
             Logger.Log(LogEvents.Resisted, caster, defender, packet.Spell);
         }
+    }
+
+    public static bool DoSpell(Player defender, Player caster, IRPacket packet)
+    {
+        if(defender.ActiveEffect != null)
+        {
+            if (defender.ActiveEffect.Overridable == false)
+                return false;
+        }
+
+        Spell spell = Activator.CreateInstance(Type.GetType(packet.Spell.ToString()), caster) as Spell;
+
+        if (defender.State == EntityState.Dead && spell.PrimaryEffect != SpellEffect.Heal)
+        {
+            return false;
+        }
+
+        //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
+        spell.Multiplier = (packet.Strength/100.0f) * (caster.Strength*caster.Level/1.0f) * (DamageMatrix[(byte)caster.Device.Type][(byte)defender.Device.Type]/100.0f);
+        //spell.Multiplier = 2f;
+
+        switch (spell.PrimaryEffect)
+        {
+            case SpellEffect.Damage:
+                defender.State = EntityState.Damaged;
+                defender.Health -= spell.PrimaryValue;
+                break;
+            case SpellEffect.Stun:
+                defender.State = EntityState.Stunned;
+                spell.ExpireTime = spell.PrimaryValue;
+                break;
+            case SpellEffect.Heal:
+                defender.State = EntityState.Healed;
+                defender.Health += spell.PrimaryValue;
+                break;
+        }
+
+        switch (spell.SecondaryEffect)
+        {
+            case SpellEffect.Damage:
+                defender.Health -= spell.SecondaryValue;
+                break;
+        }
+
+        defender.Restore(); //Set strength defense and luck back to normal
+
+        if (defender.State == EntityState.Dead)
+        {
+            caster.Kills++;
+        }
+        else
+        {
+            defender.Strength += spell.StrengthModifier;
+            defender.Defense += spell.DefenseModifier;
+            defender.Luck += spell.LuckModifier;
+            defender.ActiveEffect = spell;
+        }
+
+        Coordinator.UpdatePlayer(defender);
+        return true;
     }
 }
