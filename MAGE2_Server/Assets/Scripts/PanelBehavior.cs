@@ -114,13 +114,6 @@ public class PanelBehavior : MonoBehaviour
                 _state = Player.State;
                 if (_state == EntityState.Dead)
                     KillEffect();
-                /*
-                Status.text = (State == EntityState.Alive) ? "" : State.ToString();
-                if (BorderGlow && (State == EntityState.Alive || State == EntityState.Dead))
-                {
-                    KillBorder();
-                }
-                */
             }
             if (Player.HealthPercent != _health)
             {
@@ -149,7 +142,8 @@ public class PanelBehavior : MonoBehaviour
                             _borderGlow = GameObject.Instantiate(Resources.Load("Prefabs/GreenGlow")) as GameObject;
                             break;
                     }
-                    _borderGlow.transform.SetParent(gameObject.transform, false);
+                    if (_borderGlow != null)
+                        _borderGlow.transform.SetParent(gameObject.transform, false);
 
                     System.Type type = _activeEffect.GetType();
                     if (!(type == typeof(Damage) || type == typeof(Stun) || type == typeof(Heal)))
@@ -158,13 +152,14 @@ public class PanelBehavior : MonoBehaviour
                         _spellObject.transform.SetParent(gameObject.transform, false);
                     }
                 }
-                else
-                {
-                    Status.text = "";
-                }
             }
-            if (_state == EntityState.Dead)
-                Status.text = "Dead";
+            if(_activeEffect == null)
+            {
+                if (_state == EntityState.Dead)
+                    Status.text = "Dead";
+                else
+                    Status.text = "";
+            }
         }
     }
 
@@ -187,12 +182,32 @@ public class PanelBehavior : MonoBehaviour
         }
     }
 
+    public void UpdateBorder()
+    {
+        KillBorder();
+        switch (Player.State)
+        {
+            case EntityState.Damaged:
+                _borderGlow = GameObject.Instantiate(Resources.Load("Prefabs/RedGlow")) as GameObject;
+                break;
+            case EntityState.Stunned:
+                _borderGlow = GameObject.Instantiate(Resources.Load("Prefabs/BlueGlow")) as GameObject;
+                break;
+            case EntityState.Healed:
+                _borderGlow = GameObject.Instantiate(Resources.Load("Prefabs/GreenGlow")) as GameObject;
+                break;
+        }
+        if(_borderGlow != null)
+            _borderGlow.transform.SetParent(gameObject.transform, false);
+    }
+
 
     void OnMouseUpAsButton()
     {
         if (EventSystem.current.IsPointerOverGameObject()) return;
 
-        if(Mathf.Abs(_mouseOrigin.y - _mainCamera.ScreenToViewportPoint(Input.mousePosition).y) < 0.01f)
+        Vector3 movement = _mouseOrigin - _mainCamera.ScreenToViewportPoint(Input.mousePosition);
+        if (Mathf.Abs(movement.y) < 0.1f && Mathf.Abs(movement.x) < 0.1f)
             Select();
     }
 
@@ -203,7 +218,7 @@ public class PanelBehavior : MonoBehaviour
         {
             _startPos = _mainCamera.transform.position;
             _mouseOrigin = _mainCamera.ScreenToViewportPoint(Input.mousePosition);
-            _panning = true;
+            if(!_gameController.PlayerSelected) _panning = true;
         }
     }
 
@@ -217,10 +232,13 @@ public class PanelBehavior : MonoBehaviour
 
     void OnMouseDrag()
     {
-        Vector3 movement = _mainCamera.ScreenToViewportPoint(Input.mousePosition);
-        movement.x = _mouseOrigin.x;
-        Vector3 pos = ((_mouseOrigin - movement) * 4.0f * _mainCamera.orthographicSize) + _startPos;
-        _mainCamera.GetComponent<CameraMovement>().SetPosition(pos);
+        if (_panning)
+        {
+            Vector3 movement = _mainCamera.ScreenToViewportPoint(Input.mousePosition);
+            movement.x = _mouseOrigin.x;
+            Vector3 pos = ((_mouseOrigin - movement) * 4.0f * _mainCamera.orthographicSize) + _startPos;
+            _mainCamera.GetComponent<CameraMovement>().SetPosition(pos);
+        }
     }
 
     public void Select()

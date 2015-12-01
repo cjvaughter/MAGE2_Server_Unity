@@ -32,9 +32,12 @@ public class PanController : MonoBehaviour
 
     void OnMouseDrag()
     {
-        Vector3 movement = MainCamera.ScreenToViewportPoint(Input.mousePosition);
-        movement.x = _mouseOrigin.x;
-        Vector3 pos = ((_mouseOrigin - movement) * PanSpeed * MainCamera.orthographicSize) + _startPos;
-        MainCamera.GetComponent<CameraMovement>().SetPosition(pos);
+        if (_panning)
+        {
+            Vector3 movement = MainCamera.ScreenToViewportPoint(Input.mousePosition);
+            movement.x = _mouseOrigin.x;
+            Vector3 pos = ((_mouseOrigin - movement) * PanSpeed * MainCamera.orthographicSize) + _startPos;
+            MainCamera.GetComponent<CameraMovement>().SetPosition(pos);
+        }
     }
 }

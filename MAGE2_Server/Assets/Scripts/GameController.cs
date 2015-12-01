@@ -19,6 +19,7 @@ public class GameController : MonoBehaviour
     public GameObject ControlPanel;
     public Button PauseButton;
 
+    public bool PlayerSelected = false;
     private PanelBehavior _selectedPlayer;
     private Vector3 _lastCameraPos;
     private int _playerCount = 0;
@@ -32,10 +33,11 @@ public class GameController : MonoBehaviour
         if (_selectedPlayer == null)
         {
             _selectedPlayer = player;
-            _lastCameraPos = Camera.main.transform.position;
+            _lastCameraPos = Camera.main.GetComponent<CameraMovement>().pos;
             Camera.main.GetComponent<CameraMovement>().SetPosition(player.gameObject.transform.position, false);
             Camera.main.GetComponent<CameraMovement>().SetZoom(100);
             InfoPanel.SetPlayer(player.Player);
+            PlayerSelected = true;
         }
         else if (_selectedPlayer == player)
         {
@@ -43,12 +45,14 @@ public class GameController : MonoBehaviour
             Camera.main.GetComponent<CameraMovement>().SetPosition(_lastCameraPos);
             Camera.main.GetComponent<CameraMovement>().SetZoom(0);
             InfoPanel.SetPlayer(null);
+            PlayerSelected = false;
         }
         else
         {
             _selectedPlayer = player;
             Camera.main.GetComponent<CameraMovement>().SetPosition(player.gameObject.transform.position, false);
             InfoPanel.SetPlayer(player.Player);
+            PlayerSelected = true;
         }
     }
 

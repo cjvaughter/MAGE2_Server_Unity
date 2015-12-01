@@ -120,9 +120,13 @@ public class Player : Entity
                 if (ActiveEffect != null)
                 {
                     ActiveEffect.Caster.Kills++;
-                    KillEffect();
+                    ActiveEffect.Caster.XP += 100;
                 }
                 Logger.Log(LogEvents.Died, this);
+            }
+            else if(_state == EntityState.Alive)
+            {
+                KillBorder();
             }
         }
     }
@@ -149,6 +153,11 @@ public class Player : Entity
     public void KillBorder()
     {
         Panel.KillBorder();
+    }
+
+    public void UpdateBorder()
+    {
+        Panel.UpdateBorder();
     }
 
     public ulong Address { get; set; }

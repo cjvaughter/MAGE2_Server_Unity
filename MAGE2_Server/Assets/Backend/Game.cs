@@ -73,14 +73,14 @@ public static class Game
                 Spells.Add(SpellType.Damage);
                 //Spells.Add(SpellType.Stun);
                 Spells.Add(SpellType.Fire);
-                Spells.Add(SpellType.Water);
+                //Spells.Add(SpellType.Water);
                 //Spells.Add(SpellType.Earth);
                 Spells.Add(SpellType.Ice);
                 //Spells.Add(SpellType.Rock);
                 Spells.Add(SpellType.Thunder);
                 Spells.Add(SpellType.Poison);
-                Spells.Add(SpellType.Psychic);
-                Spells.Add(SpellType.Ghost);
+                //Spells.Add(SpellType.Psychic);
+                //Spells.Add(SpellType.Ghost);
                 //Spells.Add(SpellType.Shadow);
                 break;
             case GameType.TeamBattle:

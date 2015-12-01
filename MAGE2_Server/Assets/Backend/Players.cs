@@ -77,38 +77,58 @@ public static class Players
     {
         foreach (Player p in PlayerList.Where(p => p.ActiveEffect != null && Game.CurrentTime >= p.ActiveEffect.ExpireTime))
         {
-            if(p.State != EntityState.Stunned) p.State = EntityState.Alive;
-            if (p.Health == 0)
+            if(p.State == EntityState.Damaged || p.State == EntityState.Healed) p.State = EntityState.Alive;
+
+            if (!(p.State == EntityState.Alive || p.State == EntityState.Stunned))
             {
                 p.KillEffect();
                 Coordinator.UpdatePlayer(p);
             }
-            else if (p.ActiveEffect.SecondaryEffect == SpellEffect.Repeat && p.ActiveEffect.RepeatCount < p.ActiveEffect.SecondaryValue)
+            else if(!p.ActiveEffect.SecondaryComplete)
             {
-                p.ActiveEffect.RepeatCount++;
-                p.Health -= p.ActiveEffect.PrimaryValue;
-                if (p.Health > 0)
+                switch(p.ActiveEffect.SecondaryEffect)
                 {
-                    p.ActiveEffect.ExpireTime = 1;
-                    p.State = EntityState.Alive;
-                    Coordinator.SendMessage(p.Address, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Update);
-                    //Coordinator.UpdatePlayer(p);
-                }
-                else
-                {
-                    p.KillEffect();
-                    Coordinator.UpdatePlayer(p);
+                    case SpellEffect.Repeat:
+                        if(p.ActiveEffect.RepeatCount < p.ActiveEffect.SecondaryValue)
+                        {
+                            p.ActiveEffect.RepeatCount++;
+                            p.Health -= p.ActiveEffect.PrimaryValue;
+                            if (p.Health > 0)
+                            {
+                                p.ActiveEffect.ExpireTime = 1;
+                                Coordinator.SendMessage(p.Address, (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.State, (byte)p.State, (byte)MsgFunc.Update);
+                            }
+                            else
+                            {
+                                p.KillEffect();
+                                Coordinator.UpdatePlayer(p);
+                            }
+                        }
+                        else
+                            p.ActiveEffect.SecondaryComplete = true;
+                        break;
+                    case SpellEffect.Stun:
+                        p.State = EntityState.Stunned;
+                        p.UpdateBorder();
+                        p.ActiveEffect.ExpireTime = p.ActiveEffect.SecondaryValue;
+                        p.ActiveEffect.SecondaryComplete = true;
+                        break;
+                    default:
+                        p.ActiveEffect.SecondaryComplete = true;
+                        break;
                 }
             }
             else if(!p.ActiveEffect.TemporaryComplete)
             {
+                p.State = EntityState.Alive;
+                p.UpdateBorder();
                 p.ActiveEffect.ExpireTime = p.ActiveEffect.TemporaryLength;
                 p.ActiveEffect.TemporaryComplete = true;
             }
             else
             {
                 p.KillEffect();
-                if (p.Health > 0) p.State = EntityState.Alive;
+                p.State = EntityState.Alive;
                 Coordinator.UpdatePlayer(p);
             }
         }

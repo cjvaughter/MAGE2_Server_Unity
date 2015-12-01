@@ -64,6 +64,7 @@ public class Spell
     public SpellEffect SecondaryEffect { get; protected set; }
     public int SecondaryValue { get; protected set; }
     public int RepeatCount { get; set; }
+    public bool SecondaryComplete { get; set; }
 
     public bool TemporaryComplete { get; set; }
     public int TemporaryLength { get; protected set; }
@@ -99,6 +100,7 @@ public class Spell
         SecondaryEffect = SpellEffect.None;
         SecondaryValue = 0;
         RepeatCount = 1;
+        SecondaryComplete = false;
         TemporaryComplete = true;
         TemporaryLength = 0;
         StrengthModifier = 0;
@@ -177,13 +179,12 @@ public class Spell
                 Logger.Log(LogEvents.WasHit, god, new Entity() { Name = "Everyone" }, packet.Spell);
                 foreach (Player p in Teams.GetPlayers(defender.Team))
                 {
-                    DoSpell(p, god, packet);
+                    DoSpell(p, god, packet, true);
                 }
             }
             else
             {
-                if (DoSpell(defender, god, packet))
-                    Logger.Log(LogEvents.WasHit, god, defender, packet.Spell);
+                DoSpell(defender, god, packet);
             }
             return;
         }
@@ -208,14 +209,13 @@ public class Spell
                 Logger.Log(LogEvents.WasHit, caster, team, packet.Spell);
                 foreach (Player p in Teams.GetPlayers(defender.Team))
                 {
-                    DoSpell(p, caster, packet);
+                    DoSpell(p, caster, packet, true);
                 }
             }
             else
             {
                 caster.XP += 10;
-                if(DoSpell(defender, caster, packet))
-                    Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
+                DoSpell(defender, caster, packet);
             }
         }
         else
@@ -225,12 +225,13 @@ public class Spell
         }
     }
 
-    public static bool DoSpell(Player defender, Player caster, IRPacket packet)
+    public static bool DoSpell(Player defender, Player caster, IRPacket packet, bool team = false)
     {
         if(defender.ActiveEffect != null)
         {
             if (defender.ActiveEffect.Overridable == false)
                 return false;
+            defender.KillEffect();
         }
 
         Spell spell = Activator.CreateInstance(Type.GetType(packet.Spell.ToString()), caster) as Spell;
@@ -239,6 +240,8 @@ public class Spell
         {
             return false;
         }
+
+        if(!team) Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
 
         //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
         //spell.Multiplier = (packet.Strength/100.0f) * (caster.Strength*caster.Level/10.0f) * (DamageMatrix[(byte)caster.Device.Type][(byte)defender.Device.Type]/100.0f);

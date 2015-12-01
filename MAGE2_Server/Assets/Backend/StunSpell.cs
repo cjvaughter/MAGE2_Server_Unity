@@ -39,7 +39,7 @@ public class Shadow : Stun
         SecondaryEffect = SpellEffect.Damage;
         SecondaryValue = 25;
 
-        TemporaryComplete = false;
+        TemporaryComplete = true;
         TemporaryLength = 30;
         StrengthModifier = int.MinValue;
         DefenseModifier = int.MinValue;
