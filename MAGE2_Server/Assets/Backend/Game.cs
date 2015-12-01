@@ -77,6 +77,7 @@ public static class Game
                 //Spells.Add(SpellType.Earth);
                 Spells.Add(SpellType.Ice);
                 //Spells.Add(SpellType.Rock);
+                Spells.Add(SpellType.Thunder);
                 Spells.Add(SpellType.Poison);
                 Spells.Add(SpellType.Psychic);
                 Spells.Add(SpellType.Ghost);
@@ -98,6 +99,7 @@ public static class Game
         HUDPanelBehavior.Initialize(Settings.GameType, Rounds);
         Coordinator.Start();
         Database.Create();
+        Devices.Load();
         Logger.Log(LogEvents.ServerInitialized);
         _running = true;
     }
@@ -186,7 +188,10 @@ public static class Game
                 {
                     if ((p = Players.Add(msg)) != null)
                     {
-                        Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Health, 0, (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update);
+                        if(Type == GameType.TestMode)
+                            Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)Colors.Red, (byte)MsgFunc.State, (byte)EntityState.Alive, (byte)MsgFunc.Health, 100, (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update);
+                        else
+                            Coordinator.SendMessage(msg.Address, (byte)MsgFunc.Connect, (byte)p.Team, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Health, 0, (byte)MsgFunc.Effect, (byte)Colors.NoColor, (byte)MsgFunc.Update);
                     }
                 }
                 else
@@ -213,6 +218,19 @@ public static class Game
             case MsgFunc.Spell_RX:
                 //if (State != GameState.Active) break;
                 Spell.Process(p, msg.Data);
+                break;
+            case MsgFunc.ChangeWeapon:
+                ushort deviceID = (ushort)((msg.Data[1] << 8) | msg.Data[2]);
+                Device d = Devices.Get(deviceID);
+                if (d == null)
+                {
+                    Logger.Log(LogEvents.InvalidDevice, deviceID);
+                }
+                else if(p.Device != d)
+                {
+                    p.Device = d;
+                    Logger.Log(LogEvents.ChangedWeapon, p);
+                }
                 break;
             default:
                 Logger.Log(LogEvents.InvalidMessage);
@@ -298,7 +316,8 @@ public static class Game
             }
         }
 
-        Players.VerifyHeartbeats();
+        //if(Type != GameType.TestMode)
+            Players.VerifyHeartbeats();
         Players.ClearExpiredEffects();
         Spell.ClearExpired();
 

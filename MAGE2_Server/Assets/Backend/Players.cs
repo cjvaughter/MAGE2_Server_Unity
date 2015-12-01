@@ -10,10 +10,10 @@ public static class Players
 
     public static Player Add(MAGEMsg msg)
     {
-        ushort playerID = (ushort)((msg.Data[1] << 8) + msg.Data[2]);
-        ushort deviceID = (ushort)((msg.Data[3] << 8) + msg.Data[4]);
+        ushort playerID = (ushort)((msg.Data[1] << 8) | msg.Data[2]);
+        ushort deviceID = (ushort)((msg.Data[3] << 8) | msg.Data[4]);
         Player p = Database.GetPlayer(playerID);
-        Device d = Database.GetDevice(deviceID);
+        Device d = Devices.Get(deviceID);
         if (p != null && d != null)
         {
             p.Device = d;
@@ -49,8 +49,12 @@ public static class Players
     {
         foreach (Player p in PlayerList.Where(p => p.Connected && Game.CurrentTime - p.Heartbeat > HeartbeatTimeout))
         {
-            p.Connected = false;
-            Logger.Log(LogEvents.LostConnection, p);
+            if (p.Address < 0xAAAA) p.Heartbeat = Game.CurrentTime;
+            else
+            {
+                p.Connected = false;
+                Logger.Log(LogEvents.LostConnection, p);
+            }
         }
 
         foreach (Player p in PlayerList.Where(p => !p.Connected && Game.CurrentTime - p.Heartbeat > HeartbeatTimeout))

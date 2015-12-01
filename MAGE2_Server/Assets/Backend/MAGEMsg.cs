@@ -20,6 +20,7 @@ public enum MsgFunc
     Update,
     Spell_RX,
     Spell_TX,
+    ChangeWeapon,
 }
 
 public class MAGEMsg

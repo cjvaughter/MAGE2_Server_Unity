@@ -118,9 +118,6 @@ public class GameController : MonoBehaviour
 
         try
         {
-#if !UNITY_EDITOR
-            Console.SetOut(new ConsoleWriter(logPanel));
-#endif
             if (Settings.GameType == "Legacy")
             {
                 Legacy = true;
@@ -140,7 +137,8 @@ public class GameController : MonoBehaviour
         }
         catch (Exception e)
         {
-            Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
+            if (Legacy) global::Legacy.Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
+            else Logger.Log(e.Message + "\r\n" + e.StackTrace + "\r\n");
         }
     }
 

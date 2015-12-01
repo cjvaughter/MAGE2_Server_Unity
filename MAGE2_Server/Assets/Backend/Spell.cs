@@ -145,6 +145,8 @@ public class Spell
         IRPacket queuedSpell = SpellQueue.Find(packet => packet.ID == spell.ID && packet.Unique == spell.Unique);
         if (queuedSpell != null)
         {
+            if (defender.ID == queuedSpell.ID && Game.Type != GameType.TestMode)
+                return; //can't hit self
             SpellQueue.Remove(queuedSpell);
             if (defender.ActiveEffect == null)
                 DetermineSuccess(defender, spell);
@@ -167,7 +169,7 @@ public class Spell
     {
         if(force)
         {
-            Player god = new Player() { Name = "God" };
+            Player god = new Player() { Name = "God", Strength = 1, Device = new Device() { Type = DeviceType.Generic } };
             if (packet.Spell.ToString().Contains("Team"))
             {
                 packet.Spell = (SpellType)Enum.Parse(typeof(SpellType), packet.Spell.ToString().Replace("Team", ""), true);
@@ -193,7 +195,7 @@ public class Spell
         odds -= Chance.Next(defender.Luck);
         bool success = odds >= Chance.Next(MaxChance);
 
-        if (success)
+        if (success || Game.Type == GameType.TestMode)
         {
             caster.Hits++;
 
@@ -239,8 +241,8 @@ public class Spell
         }
 
         //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
-        spell.Multiplier = (packet.Strength/100.0f) * (caster.Strength*caster.Level/1.0f) * (DamageMatrix[(byte)caster.Device.Type][(byte)defender.Device.Type]/100.0f);
-        //spell.Multiplier = 2f;
+        //spell.Multiplier = (packet.Strength/100.0f) * (caster.Strength*caster.Level/10.0f) * (DamageMatrix[(byte)caster.Device.Type][(byte)defender.Device.Type]/100.0f);
+        spell.Multiplier = 2f;
 
         switch (spell.PrimaryEffect)
         {
@@ -253,8 +255,8 @@ public class Spell
                 spell.ExpireTime = spell.PrimaryValue;
                 break;
             case SpellEffect.Heal:
-                defender.State = EntityState.Healed;
                 defender.Health += spell.PrimaryValue;
+                defender.State = EntityState.Healed;
                 break;
         }
 

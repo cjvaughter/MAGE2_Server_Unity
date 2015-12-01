@@ -154,6 +154,7 @@ namespace Legacy
         private static void UpdateState()
         {
             if (CurrentTime - _lastTime < TimeSpan.TicksPerMillisecond) return;
+            _lastTime = CurrentTime;
 
             Players.VerifyHeartbeats();
         }

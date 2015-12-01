@@ -25,6 +25,7 @@ public enum LogEvents : byte
     LeveledUp,
     Died,
     Won,
+    ChangedWeapon,
 
     //PvP events
     WasHit,
@@ -120,6 +121,9 @@ public static class Logger
                 break;
             case LogEvents.Won:
                 Log(entity.Name + " won the game");
+                break;
+            case LogEvents.ChangedWeapon:
+                Log(entity.Name + " changed weapons");
                 break;
         }
     }

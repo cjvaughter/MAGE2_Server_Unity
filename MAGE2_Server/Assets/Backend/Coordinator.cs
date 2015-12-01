@@ -4,6 +4,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 using Microsoft.Win32;
+using UnityEngine;
 
 public static class Coordinator
 {
@@ -32,8 +33,9 @@ public static class Coordinator
         Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0x44, 0x44, 0x44, 0x44 }));
         Inbox.Enqueue(new MAGEMsg(5, new byte[] { 1, 0x55, 0x55, 0x55, 0x55 }));
         Inbox.Enqueue(new MAGEMsg(6, new byte[] { 1, 0x66, 0x66, 0x66, 0x66 }));
-        //Inbox.Enqueue(new MAGEMsg(0x13A20040A994A1, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xEE, 0xEE }));
-                                //0x13A200409377D6
+        //Inbox.Enqueue(new MAGEMsg(0x13A20040A98D73, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xFF, 0xFF })); //6
+        //Inbox.Enqueue(new MAGEMsg(0x13A200409377D6, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xFF, 0xFF })); //3 
+        // 2 0x13A20040A994A1
 
         StartThreads();
     }
@@ -107,8 +109,15 @@ public static class Coordinator
         {
             if (!_paused && Outbox.Count > 0)
             {
-                byte[] data = MAGEMsg.Encode(Outbox.Dequeue());
-                Serial.Write(data, 0, data.Length);
+                if (Outbox.Peek().Address < 0xAAAA)
+                {
+                    Outbox.Dequeue();
+                }
+                else
+                {
+                    byte[] data = MAGEMsg.Encode(Outbox.Dequeue());
+                    Serial.Write(data, 0, data.Length);
+                }
             }
             else
             {

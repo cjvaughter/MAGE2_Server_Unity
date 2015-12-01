@@ -4,10 +4,13 @@ using UnityEngine.EventSystems;
 public class PanelBehavior : MonoBehaviour
 {
     public Player Player;
+    public Device Device;
     public TextMesh Name;
     public TextMesh Status;
     public TextMesh DeviceName;
     public GameObject HealthBar;
+
+    public Texture2D defaultDevice;
 
     private GameObject _borderGlow = null;
     private GameObject _spellObject = null;
@@ -32,9 +35,15 @@ public class PanelBehavior : MonoBehaviour
 
         if (Player.Device != null)
         {
+            Device = Player.Device;
             DeviceName.text = Player.Device.Name;
             MeshRenderer playerDevicePicture = gameObject.transform.Find("Device").GetComponent<MeshRenderer>();
-            playerDevicePicture.material.mainTexture = Player.Device.Picture;
+
+            if (Device.Picture != null)
+                playerDevicePicture.material.mainTexture = Device.Picture;
+            else
+                playerDevicePicture.material.mainTexture = defaultDevice;
+
             playerDevicePicture.material.mainTexture.wrapMode = TextureWrapMode.Clamp;
         }
 
@@ -87,6 +96,19 @@ public class PanelBehavior : MonoBehaviour
 
         if (Player != null)
         {
+            if(Player.Device != Device)
+            {
+                Device = Player.Device;
+                DeviceName.text = Device.Name;
+                MeshRenderer playerDevicePicture = gameObject.transform.Find("Device").GetComponent<MeshRenderer>();
+
+                if (Device.Picture != null)
+                    playerDevicePicture.material.mainTexture = Device.Picture;
+                else
+                    playerDevicePicture.material.mainTexture = defaultDevice;
+
+                playerDevicePicture.material.mainTexture.wrapMode = TextureWrapMode.Clamp;
+            }
             if (Player.State != _state)
             {
                 _state = Player.State;
