@@ -272,13 +272,14 @@ public static class Game
                         Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
                         Players.ResetPlayers();
                         Logger.Log(LogEvents.RoundEnded, Round);
+                        /*
                         if (Round == Rounds)
                         {
                             State = GameState.Complete;
                             Logger.Log(LogEvents.GameEnded);
                             Announcer.Speak(Phrase.Game);
                         }
-                        else
+                        else*/
                         {
                             State = GameState.Timeout;
                             TimeRemaining = TimeoutPeriod;
@@ -289,6 +290,7 @@ public static class Game
                         State = GameState.Ready;
                         TimeRemaining = ReadyPeriod;
                         Round++;
+                        if (Round > Rounds) Round = 1;
                         if (Round == Rounds) Announcer.Speak(Phrase.FinalRound);
                         else
                         {
@@ -316,8 +318,7 @@ public static class Game
             }
         }
 
-        //if(Type != GameType.TestMode)
-            Players.VerifyHeartbeats();
+        Players.VerifyHeartbeats();
         Players.ClearExpiredEffects();
         Spell.ClearExpired();
 
@@ -326,6 +327,7 @@ public static class Game
             Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
             Logger.Log(LogEvents.RoundEnded, Round);
             _countdown = 0;
+            /*
             if (Round == Rounds)
             {
                 Players.ResetPlayers();
@@ -333,13 +335,14 @@ public static class Game
                 Logger.Log(LogEvents.GameEnded);
                 Announcer.Speak(Phrase.Game);
             }
-            else
+            else*/
             {
                 State = GameState.Finished;
                 TimeRemaining = FinishedPeriod;
                 Announcer.Speak(Phrase.Finished);
                 //log round winner for xp bonus and to determine overall winner
             }
+            
         }
     }
 
