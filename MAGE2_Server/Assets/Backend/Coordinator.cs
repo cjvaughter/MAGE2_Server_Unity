@@ -27,12 +27,12 @@ public static class Coordinator
         Serial.ReadTimeout = 500;
         Serial.Open();
 
-        Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x11, 0x11, 0x11, 0x11 }));
-        Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x22, 0x22, 0x22, 0x22 }));
-        Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x33, 0x33, 0x33, 0x33 }));
-        Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0x44, 0x44, 0x44, 0x44 }));
-        Inbox.Enqueue(new MAGEMsg(5, new byte[] { 1, 0x55, 0x55, 0x55, 0x55 }));
-        Inbox.Enqueue(new MAGEMsg(6, new byte[] { 1, 0x66, 0x66, 0x66, 0x66 }));
+        //Inbox.Enqueue(new MAGEMsg(1, new byte[] { 1, 0x11, 0x11, 0x11, 0x11 }));
+        //Inbox.Enqueue(new MAGEMsg(2, new byte[] { 1, 0x22, 0x22, 0x22, 0x22 }));
+        //Inbox.Enqueue(new MAGEMsg(3, new byte[] { 1, 0x33, 0x33, 0x33, 0x33 }));
+        //Inbox.Enqueue(new MAGEMsg(4, new byte[] { 1, 0x44, 0x44, 0x44, 0x44 }));
+        //Inbox.Enqueue(new MAGEMsg(5, new byte[] { 1, 0x55, 0x55, 0x55, 0x55 }));
+        //Inbox.Enqueue(new MAGEMsg(6, new byte[] { 1, 0x66, 0x66, 0x66, 0x66 }));
         //Inbox.Enqueue(new MAGEMsg(0x13A20040A98D73, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xFF, 0xFF })); //6
         //Inbox.Enqueue(new MAGEMsg(0x13A200409377D6, new byte[] { (byte)MsgFunc.Connect, 0xAB, 0xCD, 0xFF, 0xFF })); //3 
         // 2 0x13A20040A994A1
@@ -160,9 +160,8 @@ public static class Coordinator
         Outbox.Enqueue(new MAGEMsg(p.Address, new byte[] { (byte)MsgFunc.Health, (byte)((float)p.Health / p.MaxHealth * 100), (byte)MsgFunc.Update }));
     }
 
-    public static string GetPort()
+    private static string GetPort(string pattern)
     {
-        string pattern = string.Format("VID_{0}+PID_{1}+{2}", Constants.Coordinator_VID, Constants.Coordinator_PID, Constants.Coordinator_SN);
         RegistryKey ftdiKey = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Enum\FTDIBUS");
 
         foreach (string s in ftdiKey.GetSubKeyNames())
@@ -179,8 +178,15 @@ public static class Coordinator
         return null;
     }
 
-    public static void InjectMessage(MAGEMsg msg)
+    public static string GetCoordinatorPort()
     {
-        Inbox.Enqueue(msg);
+        string pattern = string.Format("VID_{0}+PID_{1}+{2}", Constants.Coordinator_VID, Constants.Coordinator_PID, Constants.Coordinator_SN);
+        return GetPort(pattern);
+    }
+
+    public static string GetPIUPort()
+    {
+        string pattern = string.Format("VID_{0}+PID_{1}+{2}", Constants.PIU_VID, Constants.PIU_PID, Constants.PIU_SN);
+        return GetPort(pattern);
     }
 }

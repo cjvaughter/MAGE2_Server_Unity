@@ -23,11 +23,12 @@ public class FireBehavior : MonoBehaviour, IKillable
 
     IEnumerator StopEmitting()
     {
-        Fire.enableEmission = false;
-        Flames.enableEmission = false;
-        Smoke.enableEmission = false;
-        Glow.enableEmission = false;
-        Sparks.enableEmission = false;
+        ParticleSystem.EmissionModule emitter;
+        emitter = Fire.emission; emitter.enabled = false;
+        emitter = Flames.emission; emitter.enabled = false;
+        emitter = Smoke.emission; emitter.enabled = false;
+        emitter = Glow.emission; emitter.enabled = false;
+        emitter = Sparks.emission; emitter.enabled = false;
         _targetVolume = 0;
         yield return new WaitForSeconds(2.0f);
         Destroy(gameObject);

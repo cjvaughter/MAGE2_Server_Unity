@@ -3,8 +3,10 @@ using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
+//using mageload;
 
 public class ConfigController : MonoBehaviour
 {
@@ -14,7 +16,7 @@ public class ConfigController : MonoBehaviour
     public UpDown RoundLength;
     public UpDown Rounds;
     public UpDown Players;
-    public Dropdown GameType;
+    public Dropdown GameTypeDropdown;
     public GameObject Dimmer;
     public GameObject InfoDialog;
     public Text Info;
@@ -26,6 +28,12 @@ public class ConfigController : MonoBehaviour
     public Slider DownloadProgress;
     public GameObject DownloadCompleteDialog;
     public GameObject NoCoordinatorDialog;
+    public GameObject NoPIUDialog;
+    public GameObject DFUDialog;
+    public GameObject DFUCompleteDialog;
+    public Text DFUCompleteText;
+    public Slider DFUWriteProgress;
+    public Slider DFUVerifyProgress;
 
     private int _oldRounds, _oldRoundLength, _oldPlayers;
     private string _port;
@@ -36,6 +44,7 @@ public class ConfigController : MonoBehaviour
     private Version _newPIUVersion = new Version(0, 0);
     private string _piuDownloadURL = "";
     private bool _checkforupdates = false;
+    private Thread dfuThread;
 
     void Awake()
     {
@@ -53,10 +62,16 @@ public class ConfigController : MonoBehaviour
     void Start()
     {
         LoadSettings();
+        setPIUVersion();
+        if (_checkforupdates) StartCoroutine("CheckForUpdates");
+	}
+
+    void setPIUVersion()
+    {
         Directory.CreateDirectory(@".\PIU Firmware");
         Info.text = Info.text.Replace("Build 0.0.0.0", "Build " + typeof(Game).Assembly.GetName().Version);
         Version highestVersion = new Version(0, 0);
-        foreach(string s in Directory.GetFiles(@".\PIU Firmware", "PIU-*.hex"))
+        foreach (string s in Directory.GetFiles(@".\PIU Firmware", "PIU-*.hex"))
         {
             Version v = new Version(s.Replace(@".\PIU Firmware\PIU-", "").Replace(".hex", ""));
             if (v > highestVersion)
@@ -64,9 +79,7 @@ public class ConfigController : MonoBehaviour
         }
         _piuVersion = highestVersion;
         Info.text = Info.text.Replace("PIU Firmware 0.0", "PIU Firmware " + _piuVersion);
-
-        if (_checkforupdates) StartCoroutine("CheckForUpdates");
-	}
+    }
 
     public void StartGame()
     {
@@ -77,10 +90,15 @@ public class ConfigController : MonoBehaviour
     void LoadSettings()
     {
         //Game Type
-        foreach (string s in Enum.GetNames(typeof(GameType)))
-            GameType.options.Add(new Dropdown.OptionData(s.Expand()));
-        GameType.value = -1;
-        GameType.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
+        //foreach (string s in Enum.GetNames(typeof(GameType)))
+        //GameType.options.Add(new Dropdown.OptionData(s.Expand()));
+        //GameType.value = -1;
+        //GameType.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
+
+        GameTypeDropdown.options.Add(new Dropdown.OptionData("Test Mode"));
+        GameTypeDropdown.value = -1;
+        GameTypeDropdown.value = (int)(GameType)Enum.Parse(typeof(GameType), "TestMode", true);
+        OnGameTypeChanged();
 
         //Round Length
         RoundLength.Value = Settings.RoundLength;
@@ -94,7 +112,7 @@ public class ConfigController : MonoBehaviour
 
     bool ValidateSettings()
     {
-        _port = Coordinator.GetPort();
+        _port = Coordinator.GetCoordinatorPort();
         if(_port == null)
         {
             Dimmer.SetActive(true);
@@ -102,7 +120,8 @@ public class ConfigController : MonoBehaviour
             return false;
         }
 
-        Settings.GameType = ((GameType)GameType.value).ToString().Expand();
+        //Settings.GameType = ((GameType)GameType.value).ToString().Expand();
+        Settings.GameType = "TestMode";
         Settings.RoundLength = RoundLength.Value;
         Settings.Rounds = Rounds.Value;
         Settings.Port = _port;
@@ -114,7 +133,7 @@ public class ConfigController : MonoBehaviour
 
     public void OnGameTypeChanged()
     {
-        if(GameType.value == (int)global::GameType.TestMode || GameType.value == (int)global::GameType.Legacy)
+        //if(GameType.value == (int)global::GameType.TestMode || GameType.value == (int)global::GameType.Legacy)
         {
             _oldRoundLength = RoundLength.Value;
             _oldRounds = Rounds.Value;
@@ -125,7 +144,7 @@ public class ConfigController : MonoBehaviour
             RoundLength.interactable = false;
             Rounds.interactable = false;
             Players.interactable = false;
-        }
+        }/*
         else
         {
             RoundLength.Value = _oldRoundLength == 0 ? RoundLength.DefaultValue : _oldRoundLength;
@@ -135,7 +154,7 @@ public class ConfigController : MonoBehaviour
             RoundLength.interactable = true;
             Rounds.interactable = true;
             Players.interactable = true;
-        }
+        }*/
     }
 
     public void Exit()
@@ -152,8 +171,45 @@ public class ConfigController : MonoBehaviour
 
     public void DFU()
     {
-        FaderOut.GetComponent<FadeOut>().Scene = "DFU";
-        FaderOut.SetActive(true);
+        _port = Coordinator.GetPIUPort();
+        Dimmer.SetActive(true);
+        if (_port == null)
+        {
+            NoPIUDialog.SetActive(true);
+        }
+        else
+        {
+            DFUDialog.SetActive(true);
+            dfuThread = new Thread(runMageload) { IsBackground = true };
+            dfuThread.Start();
+            StartCoroutine("mageloadProgress");
+        }
+    }
+
+    IEnumerator mageloadProgress()
+    {
+        while(dfuThread.IsAlive)
+        {
+            DFUWriteProgress.value = mageload.Mageload.writeProgress;
+            DFUVerifyProgress.value = mageload.Mageload.verifyProgress;
+            yield return new WaitForSeconds(0.5f);
+        }
+        DFUDialog.SetActive(false);
+        DFUCompleteText.text = mageload.Mageload.message.Replace("\n", "");
+        UnityEngine.Debug.Log(mageload.Mageload.message);
+        DFUCompleteDialog.SetActive(true);
+    }
+
+    public void runMageload()
+    {
+        string[] args = new string[5];
+        args[0] = "-p";
+        args[1] = Coordinator.GetPIUPort();
+        UnityEngine.Debug.Log(Coordinator.GetPIUPort());
+        args[2] = "-f";
+        args[3] = @".\PIU Firmware\PIU-" + _piuVersion + ".hex";
+        args[4] = "-v";
+        mageload.Mageload.Main(args);
     }
 
     public void ShowInfo()
@@ -289,6 +345,18 @@ public class ConfigController : MonoBehaviour
     public void NoCoordinatorOK()
     {
         NoCoordinatorDialog.SetActive(false);
+        Dimmer.SetActive(false);
+    }
+
+    public void NoPIUOK()
+    {
+        NoPIUDialog.SetActive(false);
+        Dimmer.SetActive(false);
+    }
+
+    public void DFUCompleteOK()
+    {
+        DFUCompleteDialog.SetActive(false);
         Dimmer.SetActive(false);
     }
 }

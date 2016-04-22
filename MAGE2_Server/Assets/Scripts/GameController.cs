@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Diagnostics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
@@ -229,7 +230,7 @@ public class GameController : MonoBehaviour
 
     public void PlayAgain()
     {
-        Application.LoadLevel("GameScreen");
+        SceneManager.LoadScene("GameScreen");
     }
 
     void Exit()

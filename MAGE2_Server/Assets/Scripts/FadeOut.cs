@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class FadeOut : MonoBehaviour
@@ -26,7 +27,7 @@ public class FadeOut : MonoBehaviour
                 if (Scene == "Exit")
                     Application.Quit();
                 else
-                    Application.LoadLevel(Scene);
+                    SceneManager.LoadScene(Scene);
             }
         }
     }
