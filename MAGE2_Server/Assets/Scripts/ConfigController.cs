@@ -90,14 +90,14 @@ public class ConfigController : MonoBehaviour
     void LoadSettings()
     {
         //Game Type
-        //foreach (string s in Enum.GetNames(typeof(GameType)))
-        //GameType.options.Add(new Dropdown.OptionData(s.Expand()));
-        //GameType.value = -1;
-        //GameType.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
-
-        GameTypeDropdown.options.Add(new Dropdown.OptionData("Test Mode"));
+        foreach (string s in Enum.GetNames(typeof(GameType)))
+        GameTypeDropdown.options.Add(new Dropdown.OptionData(s.Expand()));
         GameTypeDropdown.value = -1;
-        GameTypeDropdown.value = (int)(GameType)Enum.Parse(typeof(GameType), "TestMode", true);
+        GameTypeDropdown.value = (int)(GameType)Enum.Parse(typeof(GameType), Settings.GameType.Replace(" ", ""), true);
+
+        //GameTypeDropdown.options.Add(new Dropdown.OptionData("Test Mode"));
+        //GameTypeDropdown.value = -1;
+        //GameTypeDropdown.value = (int)(GameType)Enum.Parse(typeof(GameType), "TestMode", true);
         OnGameTypeChanged();
 
         //Round Length
@@ -120,8 +120,7 @@ public class ConfigController : MonoBehaviour
             return false;
         }
 
-        //Settings.GameType = ((GameType)GameType.value).ToString().Expand();
-        Settings.GameType = "TestMode";
+        Settings.GameType = ((GameType)GameTypeDropdown.value).ToString().Expand();
         Settings.RoundLength = RoundLength.Value;
         Settings.Rounds = Rounds.Value;
         Settings.Port = _port;
@@ -133,7 +132,7 @@ public class ConfigController : MonoBehaviour
 
     public void OnGameTypeChanged()
     {
-        //if(GameType.value == (int)global::GameType.TestMode || GameType.value == (int)global::GameType.Legacy)
+        if(GameTypeDropdown.value == (int)global::GameType.TestMode || GameTypeDropdown.value == (int)global::GameType.Legacy)
         {
             _oldRoundLength = RoundLength.Value;
             _oldRounds = Rounds.Value;
@@ -144,7 +143,7 @@ public class ConfigController : MonoBehaviour
             RoundLength.interactable = false;
             Rounds.interactable = false;
             Players.interactable = false;
-        }/*
+        }
         else
         {
             RoundLength.Value = _oldRoundLength == 0 ? RoundLength.DefaultValue : _oldRoundLength;
@@ -154,7 +153,7 @@ public class ConfigController : MonoBehaviour
             RoundLength.interactable = true;
             Rounds.interactable = true;
             Players.interactable = true;
-        }*/
+        }
     }
 
     public void Exit()

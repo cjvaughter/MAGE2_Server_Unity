@@ -18,6 +18,20 @@ public class Wind : Heal
     }
 }
 
+public class Earth : Heal
+{
+    public Earth(Player caster) : base(caster)
+    {
+        PrimaryValue = 15;
+
+        TemporaryComplete = false;
+        TemporaryLength = 30;
+        StrengthModifier = 10;
+        DefenseModifier = 10;
+        LuckModifier = 5;
+    }
+}
+
 public class Light : Heal
 {
     public Light(Player caster) : base(caster)

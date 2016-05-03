@@ -39,6 +39,7 @@ public static class Constants
 
     public const float Aspect_16_9 =  16.0f / 9.0f;
     public const float Aspect_16_10 = 16.0f / 10.0f;
+    public const float Aspect_3_2 =   3.0f / 2.0f;
     public const float Aspect_4_3 =   4.0f / 3.0f;
     public const float Aspect_5_4 =   5.0f / 4.0f;
 

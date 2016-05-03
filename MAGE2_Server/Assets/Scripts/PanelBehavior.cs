@@ -207,7 +207,7 @@ public class PanelBehavior : MonoBehaviour
         if (EventSystem.current.IsPointerOverGameObject()) return;
 
         Vector3 movement = _mouseOrigin - _mainCamera.ScreenToViewportPoint(Input.mousePosition);
-        if (Mathf.Abs(movement.y) < 0.1f && Mathf.Abs(movement.x) < 0.1f)
+        if (Mathf.Abs(movement.y) < 0.025f && Mathf.Abs(movement.x) < 0.025f)
             Select();
     }
 

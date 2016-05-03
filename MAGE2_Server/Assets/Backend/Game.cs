@@ -186,11 +186,11 @@ public static class Game
                 }
                 break;
             case MsgFunc.Spell_TX:
-                //if (State != GameState.Active) break;
+                if (State != GameState.Active) break;
                 Spell.Add(p, msg.Data);
                 break;
             case MsgFunc.Spell_RX:
-                //if (State != GameState.Active) break;
+                if (State != GameState.Active) break;
                 Spell.Process(p, msg.Data);
                 break;
             case MsgFunc.ChangeWeapon:
@@ -205,6 +205,10 @@ public static class Game
                     p.Device = d;
                     Logger.Log(LogEvents.ChangedWeapon, p);
                 }
+                break;
+            case MsgFunc.Device_RX:
+                if (State != GameState.Active) break;
+                Spell.ForceProcess(p, msg.Data);
                 break;
             default:
                 Logger.Log(LogEvents.InvalidMessage);
@@ -248,9 +252,13 @@ public static class Game
                         Logger.Log(LogEvents.RoundEnded, Round);
                         if (Round == Rounds)
                         {
-                            State = GameState.Complete;
-                            Logger.Log(LogEvents.GameEnded);
-                            Announcer.Speak(Phrase.Game);
+                            //State = GameState.Complete;
+                            //Logger.Log(LogEvents.GameEnded);
+                            //Announcer.Speak(Phrase.Game);
+                            State = GameState.Timeout;
+                            TimeRemaining = TimeoutPeriod;
+                            Announcer.Speak(Phrase.Time);
+                            Round = 0;
                         }
                         else
                         {
@@ -298,6 +306,14 @@ public static class Game
         {
             Coordinator.SendMessage(Coordinator.Broadcast, (byte)MsgFunc.State, (byte)EntityState.Dead, (byte)MsgFunc.Update);
             Logger.Log(LogEvents.RoundEnded, Round);
+
+
+            Players.ResetPlayers();
+            Announcer.Speak(Phrase.Finished);
+            State = GameState.Timeout;
+            TimeRemaining = TimeoutPeriod;
+            Round = 0;
+            /*
             _countdown = 0;            
             if (Round == Rounds)
             {
@@ -313,7 +329,7 @@ public static class Game
                 Announcer.Speak(Phrase.Finished);
                 //log round winner for xp bonus and to determine overall winner
             }
-            
+            */
         }
     }
 

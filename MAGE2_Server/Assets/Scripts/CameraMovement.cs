@@ -4,41 +4,55 @@ public class CameraMovement : MonoBehaviour
 {
     public Camera MainCamera;
     public float ScrollSpeed = 8;
-    public int PlayerRows = 3;
+    public int PlayerRows = 4;
 
     public Vector3 pos = new Vector3();
     private float _zoom;
 
-    private float _defaultZoom = 8;
-    private float _zoomIn = 4;
+    private float _defaultZoom = 8f;
+    private float _zoomIn = 4f;
+    private float _defaultPosY = -0.33f;
+    private int _numVisibleRows = 3;
 
     void Start()
     {
         float aspect = (float)Screen.width / (float)Screen.height;
 
-        if (Mathf.Abs(aspect - Constants.Aspect_16_9) < 0.01)
+        if (Mathf.Abs(aspect - Constants.Aspect_16_9) <= 0.01f)
         {
             //all good
         }
-        else if (Mathf.Abs(aspect - Constants.Aspect_16_10) < 0.01)
+        else if (Mathf.Abs(aspect - Constants.Aspect_16_10) <= 0.01f)
         {
-            //also good
+            _defaultZoom = 9f;
+            _defaultPosY = -1f;
         }
-        else if (Mathf.Abs(aspect - Constants.Aspect_4_3) < 0.01)
+        else if (Mathf.Abs(aspect - Constants.Aspect_3_2) <= 0.01f)
         {
-            _defaultZoom = 11;
-            pos.y = -2f;
+            _defaultZoom = 9.5f;
+            _defaultPosY = -1.5f;
+            _numVisibleRows = 4;
         }
-        else if (Mathf.Abs(aspect - Constants.Aspect_5_4) < 0.01)
+        else if (Mathf.Abs(aspect - Constants.Aspect_4_3) <= 0.01f)
         {
-            _defaultZoom = 12;
-            pos.y = -1.5f;
+            _defaultZoom = 10.75f;
+            _defaultPosY = -2.33f;
+            _numVisibleRows = 4;
+        }
+        else if (Mathf.Abs(aspect - Constants.Aspect_5_4) <= 0.01f)
+        {
+            _defaultZoom = 11.5f;
+            _defaultPosY = -2.75f;
+            _numVisibleRows = 4;
         }
 
         MainCamera.orthographicSize = _defaultZoom;
         _zoom = _defaultZoom;
+        pos.y = _defaultPosY;
         pos.z = -10;
         transform.position = pos;
+        PlayerRows = _numVisibleRows;
+        PlayerRows = 4;
     }
 
     void LateUpdate()
@@ -72,13 +86,15 @@ public class CameraMovement : MonoBehaviour
         this.pos.z = -10;
         if (clamped)
         {
-            this.pos.y = Mathf.Clamp(this.pos.y, (float)-3.5 * (PlayerRows - 3), 0);
+            int rows = PlayerRows - _numVisibleRows;
+            float min = _defaultPosY - (3.5f * rows);
+            this.pos.y = Mathf.Clamp(this.pos.y, min, _defaultPosY);
             this.pos.x = 0;
         }
     }
 
     public void SetRows(int num)
     {
-        if(num > 3) PlayerRows = num;
+        PlayerRows = Mathf.Clamp(num, _numVisibleRows, int.MaxValue);
     }
 }

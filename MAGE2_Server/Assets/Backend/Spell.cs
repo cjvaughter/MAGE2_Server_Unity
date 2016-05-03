@@ -157,6 +157,16 @@ public class Spell
         }
     }
 
+    public static void ForceProcess(Player defender, byte[] data)
+    {
+        IRPacket spell = new IRPacket() { Spell = (SpellType)data[1], Strength = data[2] };
+
+        if (defender.ActiveEffect == null)
+            ForceDetermineSuccess(defender, spell);
+        else if (defender.ActiveEffect.Overridable)
+            ForceDetermineSuccess(defender, spell);
+    }
+
     public static void ClearExpired()
     {
         List<IRPacket> expired = SpellQueue.FindAll(packet => Game.CurrentTime - packet.Timestamp >= SpellTimeout);
@@ -196,6 +206,9 @@ public class Spell
         odds -= Chance.Next(defender.Luck);
         bool success = odds >= Chance.Next(MaxChance);
 
+        //disable resisting spells
+        success = true;
+
         if (success || Game.Type == GameType.TestMode)
         {
             caster.Hits++;
@@ -225,6 +238,31 @@ public class Spell
         }
     }
 
+    public static void ForceDetermineSuccess(Player defender, IRPacket packet)
+    {
+        Player caster = defender;
+
+        caster.Hits++;
+        caster.XP++;
+
+        if (packet.Spell.ToString().Contains("Team"))
+        {
+            Team team = Teams.Get(defender.Team);
+            packet.Spell = (SpellType)Enum.Parse(typeof(SpellType), packet.Spell.ToString().Replace("Team", ""), true);
+
+            Logger.Log(LogEvents.WasHit, caster, team, packet.Spell);
+            foreach (Player p in Teams.GetPlayers(defender.Team))
+            {
+                DoSpell(p, caster, packet, true);
+            }
+        }
+        else
+        {
+            DoSpell(defender, caster, packet);
+        }
+
+    }
+
     public static bool DoSpell(Player defender, Player caster, IRPacket packet, bool team = false)
     {
         if(defender.ActiveEffect != null)
@@ -243,9 +281,10 @@ public class Spell
 
         if(!team) Logger.Log(LogEvents.WasHit, caster, defender, packet.Spell);
 
+        //disable variable strength
         //int strength = (int)(caster.Strength * (float)(DamageMatrix[(byte)caster.Device.Type, (byte)defender.Device.Type])/100.0f);
         //spell.Multiplier = (packet.Strength/100.0f) * (caster.Strength*caster.Level/10.0f) * (DamageMatrix[(byte)caster.Device.Type][(byte)defender.Device.Type]/100.0f);
-        spell.Multiplier = 2f;
+        spell.Multiplier = 1f;
 
         switch (spell.PrimaryEffect)
         {

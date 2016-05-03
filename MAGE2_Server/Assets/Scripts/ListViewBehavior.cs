@@ -14,7 +14,7 @@ public class ListViewBehavior : MonoBehaviour
 
 	void Start ()
     {
-        //Spacer.GetComponent<LayoutElement>().preferredHeight = gameObject.GetComponentInParent<RectTransform>().rect.height;
+        //Spacer.GetComponent<LayoutElement>().minHeight = gameObject.GetComponentInParent<RectTransform>().rect.height;
         Database.Create();
         Fill();
 	}
@@ -50,8 +50,8 @@ public class ListViewBehavior : MonoBehaviour
 
                 if (Spacer.activeSelf)
                 {
-                    Spacer.GetComponent<LayoutElement>().preferredHeight -= 57;
-                    if (Spacer.GetComponent<LayoutElement>().preferredHeight <= 0) Spacer.SetActive(false);
+                    Spacer.GetComponent<LayoutElement>().minHeight -= 57;
+                    if (Spacer.GetComponent<LayoutElement>().minHeight <= 0) Spacer.SetActive(false);
                 }
                 Spacer.transform.SetAsLastSibling();
                 _rowCount++;
@@ -84,8 +84,8 @@ public class ListViewBehavior : MonoBehaviour
 
                 if (Spacer.activeSelf)
                 {
-                    Spacer.GetComponent<LayoutElement>().preferredHeight -= 57;
-                    if (Spacer.GetComponent<LayoutElement>().preferredHeight <= 0) Spacer.SetActive(false);
+                    Spacer.GetComponent<LayoutElement>().minHeight -= 57;
+                    if (Spacer.GetComponent<LayoutElement>().minHeight <= 0) Spacer.SetActive(false);
                 }
                 Spacer.transform.SetAsLastSibling();
                 _rowCount++;
@@ -102,8 +102,8 @@ public class ListViewBehavior : MonoBehaviour
                 Destroy(t.gameObject);
         }
         Spacer.SetActive(true);
-        //Spacer.GetComponent<LayoutElement>().preferredHeight = gameObject.GetComponentInParent<RectTransform>().rect.height;
-        Spacer.GetComponent<LayoutElement>().preferredHeight = 774;
+        Spacer.GetComponent<LayoutElement>().minHeight = gameObject.GetComponentInParent<RectTransform>().rect.height;
+        //Spacer.GetComponent<LayoutElement>().preferredHeight = 774;
         _rowCount = 0;
         Scroll.value = 1;
     }

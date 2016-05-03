@@ -21,6 +21,7 @@ public enum MsgFunc
     Spell_RX,
     Spell_TX,
     ChangeWeapon,
+    Device_RX,
 }
 
 public class MAGEMsg
